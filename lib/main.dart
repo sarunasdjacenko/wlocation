@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
 
@@ -6,7 +7,12 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // Make app full screen for presentation screenshots.
+    SystemChrome.setEnabledSystemUIOverlays([]);
+
     return MaterialApp(
+      // Hide debug banner for presentation screenshots.
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -44,17 +50,43 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  static const platform = const MethodChannel('sarunasdjacenko.com/wifi_scan');
+  List<dynamic> _wifiResults = [];
 
-  void _incrementCounter() {
+  Future<void> _getWifiResults() async {
+    List<dynamic> wifiResults;
+    try {
+      wifiResults = await platform.invokeMethod('getWifiResults');
+    } on PlatformException {
+      wifiResults = [];
+    }
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _wifiResults = wifiResults;
     });
+  }
+
+  // Create text widget for each part of a result in a wifi scan.
+  Widget _textItem(String str) {
+    return Text(str, style: Theme.of(context).textTheme.subhead);
+  }
+
+  // Create expanded text widget for larger text.
+  Widget _expandedTextItem(String str) {
+    return Expanded(
+        child: _textItem(str)
+    );
+  }
+
+  // Create widget for each result in a wifi scan.
+  Widget _rowItem(List<dynamic> result) {
+    return Row(
+      children: <Widget>[
+        _expandedTextItem('${result[0]}'),
+        _expandedTextItem('${result[1]}'),
+        _textItem('${result[2]}%'),
+      ],
+    );
   }
 
   @override
@@ -74,37 +106,18 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
+        child: ListView.builder(
+          padding: EdgeInsets.all(10.0),
+          itemCount: _wifiResults.length,
+          itemBuilder: (BuildContext context, int index) {
+            return _rowItem(_wifiResults[index]);
+          }
+        )
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _getWifiResults,
         tooltip: 'Increment',
-        child: Icon(Icons.add),
+        child: Icon(Icons.search),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
