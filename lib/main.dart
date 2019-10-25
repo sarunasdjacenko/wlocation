@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wifi_location/models/scan_result.dart';
 
 void main() => runApp(MyApp());
 
@@ -51,40 +52,42 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   static const platform = const MethodChannel('sarunasdjacenko.com/wifi_scan');
-  List<dynamic> _wifiResults = [];
+  List<ScanResult> _wifiResults = [];
 
+  /// Invokes native method to scan for WiFi using, and adds results to a list.
+  /// This is only implemented in Android (Kotlin) due to iOS limitations.
   Future<void> _getWifiResults() async {
-    List<dynamic> wifiResults;
+    List<Map<dynamic, dynamic>> wifiResults;
     try {
-      wifiResults = await platform.invokeMethod('getWifiResults');
+      wifiResults = await platform.invokeListMethod('getWifiResults');
     } on PlatformException {
       wifiResults = [];
     }
 
     setState(() {
-      _wifiResults = wifiResults;
+      _wifiResults =
+          wifiResults.map((result) => ScanResult(result: result)).toList();
     });
   }
 
-  // Create text widget for each part of a result in a wifi scan.
+  /// Create text widget for each part of a result in a wifi scan.
   Widget _textItem(String str) {
     return Text(str, style: Theme.of(context).textTheme.subhead);
   }
 
-  // Create expanded text widget for larger text.
+  /// Create expanded text widget for larger text.
   Widget _expandedTextItem(String str) {
-    return Expanded(
-        child: _textItem(str)
-    );
+    return Expanded(child: _textItem(str));
   }
 
-  // Create widget for each result in a wifi scan.
-  Widget _rowItem(List<dynamic> result) {
+  /// Create widget for each result in a wifi scan.
+  Widget _rowItem(ScanResult result) {
+    print('${DateTime.now().millisecondsSinceEpoch}, ${result.timestamp}');
     return Row(
       children: <Widget>[
-        _expandedTextItem('${result[0]}'),
-        _expandedTextItem('${result[1]}'),
-        _textItem('${result[2]}%'),
+        _expandedTextItem('${result.ssid}'),
+        _expandedTextItem('${result.timestamp}'),
+        _textItem('${result.level}'),
       ],
     );
   }
@@ -111,8 +114,8 @@ class _MyHomePageState extends State<MyHomePage> {
           itemCount: _wifiResults.length,
           itemBuilder: (BuildContext context, int index) {
             return _rowItem(_wifiResults[index]);
-          }
-        )
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _getWifiResults,
