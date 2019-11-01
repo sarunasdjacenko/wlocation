@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wifi_location/models/scan_result.dart';
@@ -9,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Make app full screen for presentation screenshots.
-    SystemChrome.setEnabledSystemUIOverlays([]);
+    // SystemChrome.setEnabledSystemUIOverlays([]);
 
     return MaterialApp(
       // Hide debug banner for presentation screenshots.
@@ -51,15 +53,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  static const platform = const MethodChannel('sarunasdjacenko.com/wifi_scan');
+  /// [MethodChannel] on which to invoke native methods.
+  static const _platform = const MethodChannel('sarunasdjacenko.com/wifi_scan');
+  /// Set [Duration] between each WiFi scan.
+  static const _scanTimer = const Duration(seconds: 30);
   List<ScanResult> _wifiResults = [];
+
+  /// Create a [Timer] to scan for wifi every [_scanTimer] seconds.
+  @override
+  void initState() {
+    super.initState();
+    Timer.periodic(_scanTimer, (_) => _getWifiResults());
+  }
 
   /// Invokes native method to scan for WiFi using, and adds results to a list.
   /// This is only implemented in Android (Kotlin) due to iOS limitations.
   Future<void> _getWifiResults() async {
     List<Map<dynamic, dynamic>> wifiResults;
     try {
-      wifiResults = await platform.invokeListMethod('getWifiResults');
+      wifiResults = await _platform.invokeListMethod('getWifiResults');
     } on PlatformException {
       wifiResults = [];
     }
@@ -82,12 +94,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   /// Create widget for each result in a wifi scan.
   Widget _rowItem(ScanResult result) {
-    print('${DateTime.now().millisecondsSinceEpoch}, ${result.timestamp}');
+    if (result.ssid != 'eduroam') return Container();
     return Row(
       children: <Widget>[
-        _expandedTextItem('${result.ssid}'),
-        _expandedTextItem('${result.timestamp}'),
-        _textItem('${result.level}'),
+        _expandedTextItem(
+            '${result.ssid}, ${result.frequency}Hz, ${result.level}dB, ${result.levelpct}%'),
+        _textItem('distance: ${result.distance.toStringAsFixed(3)}m'),
       ],
     );
   }
