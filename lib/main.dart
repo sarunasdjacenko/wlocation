@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wifi_location/models/scan_result.dart';
@@ -55,20 +56,27 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   /// [MethodChannel] on which to invoke native methods.
   static const _platform = const MethodChannel('sarunasdjacenko.com/wifi_scan');
-  /// Set [Duration] between each WiFi scan.
-  static const _scanTimer = const Duration(seconds: 30);
+
+  /// [List] of [ScanResult] obtained with each WiFi scan.
   List<ScanResult> _wifiResults = [];
 
-  /// Create a [Timer] to scan for wifi every [_scanTimer] seconds.
+  /// Set [Duration] between each WiFi scan.
+  static const _scanWaitTime = const Duration(seconds: 30);
+
+  /// [RestartableTimer] used to scan for Wifi every [_scanWaitTime] seconds.
+  RestartableTimer _scanTimer;
+
   @override
   void initState() {
     super.initState();
-    Timer.periodic(_scanTimer, (_) => _getWifiResults());
+    _scanTimer = RestartableTimer(_scanWaitTime, () => _getWifiResults());
+    _getWifiResults();
   }
 
   /// Invokes native method to scan for WiFi using, and adds results to a list.
   /// This is only implemented in Android (Kotlin) due to iOS limitations.
   Future<void> _getWifiResults() async {
+    _scanTimer.reset();
     List<Map<dynamic, dynamic>> wifiResults;
     try {
       wifiResults = await _platform.invokeListMethod('getWifiResults');
