@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wifi_location/models/scan_result.dart';
+import 'models/scan_result.dart';
 
 void main() => runApp(MyApp());
 
@@ -102,7 +102,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   /// Create widget for each result in a wifi scan.
   Widget _rowItem(ScanResult result) {
-    if (result.ssid != 'eduroam') return Container();
+    if (result.ssid != 'SKYDF4D5') return Container();
+//    if (result.ssid != 'eduroam') return Container();
     return Row(
       children: <Widget>[
         _expandedTextItem(
