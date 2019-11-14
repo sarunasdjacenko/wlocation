@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'models/scan_result.dart';
 
 void main() => runApp(MyApp());
@@ -107,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Row(
       children: <Widget>[
         _expandedTextItem(
-            '${result.ssid}, ${result.frequency}Hz, ${result.level}dB, ${result.levelpct}%'),
+            '${result.level}, ${result.frequency}, ${result.bssid}, ${result.ssid}'),
         _textItem('distance: ${result.distance.toStringAsFixed(3)}m'),
       ],
     );

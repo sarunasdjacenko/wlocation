@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'dart:math';
+
+import 'package:flutter/foundation.dart';
 
 /// Scan Result object, containing relevant information from the scan.
 class ScanResult {
@@ -9,10 +10,12 @@ class ScanResult {
   final int level;
   final int levelpct;
 
-  /// The speed of light in a vacuum.
+  /// The speed of light in a vacuum, in m/s.
   static const int _kSpeedOfLight = 299792458;
+
   /// 4π/c. Convert [frequency] measurement from MHz to Hz.
-  static const double _kConstant = (4*pi/_kSpeedOfLight) * 1000000;
+  static const double _kConstant = (4 * pi / _kSpeedOfLight) * 1000000;
+
   /// The estimated [distance] to the access point.
   double distance;
 
@@ -25,6 +28,6 @@ class ScanResult {
         this.frequency = result["frequency"],
         this.level = result["level"],
         this.levelpct = result["levelpct"] + 1 {
-    distance = pow(10, -level/20) / (frequency * _kConstant);
+    distance = pow(10, -level / 20) / (frequency * _kConstant);
   }
 }

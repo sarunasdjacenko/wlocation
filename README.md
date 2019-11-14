@@ -1,6 +1,6 @@
-# wifi_location
+# wlocation
 
-Determine indoor location using WiFi.
+Determine indoor location using Wi-Fi scanning.
 
 ## Getting Started
 
