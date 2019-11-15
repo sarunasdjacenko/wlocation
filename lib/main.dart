@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -55,6 +59,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  Firestore database;
+
   /// [MethodChannel] on which to invoke native methods.
   static const _platform = const MethodChannel('sarunasdjacenko.com/wifi_scan');
 
@@ -70,8 +76,41 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _setUpDatabase();
     _scanTimer = RestartableTimer(_scanWaitTime, () => _getWifiResults());
     _getWifiResults();
+  }
+
+  Future<void> _setUpDatabase() async {
+    FirebaseApp firebaseApp = await FirebaseApp.configure(
+      name: 'wlocation',
+      options: FirebaseOptions(
+        googleAppID: (Platform.isAndroid)
+            ? '1:441823800386:android:a9ff8985fef83db2ff11db'
+            : (Platform.isIOS)
+                ? '1:441823800386:ios:f5a72ccb6777dd61ff11db'
+                : 'null',
+        apiKey: 'AIzaSyCuuqXG4IUQ1c4pXfFbhyc0k3Vl_85XwTg',
+        projectID: 'wlocation',
+      ),
+    );
+    FirebaseAuth.fromApp(firebaseApp).signInAnonymously();
+    database = Firestore(app: firebaseApp);
+  }
+
+  void _testDatabase() {
+    // read
+    database
+        .collection('test_collection')
+        .document('test_document')
+        .get()
+        .then((document) => print(document.data));
+
+    // write
+    database
+        .collection('test_collection')
+        .document('new_test_document')
+        .setData({'test_field': 'test_string'});
   }
 
   /// Invokes native method to scan for WiFi using, and adds results to a list.
@@ -140,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _getWifiResults,
+        onPressed: _testDatabase,
         tooltip: 'Increment',
         child: Icon(Icons.search),
       ), // This trailing comma makes auto-formatting nicer for build methods.
