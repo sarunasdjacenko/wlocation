@@ -85,11 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
     FirebaseApp firebaseApp = await FirebaseApp.configure(
       name: 'wlocation',
       options: FirebaseOptions(
-        googleAppID: (Platform.isAndroid)
-            ? '1:441823800386:android:a9ff8985fef83db2ff11db'
-            : (Platform.isIOS)
-                ? '1:441823800386:ios:f5a72ccb6777dd61ff11db'
-                : 'null',
+        googleAppID: 'N/A',
         apiKey: 'AIzaSyCuuqXG4IUQ1c4pXfFbhyc0k3Vl_85XwTg',
         projectID: 'wlocation',
       ),
@@ -101,14 +97,14 @@ class _MyHomePageState extends State<MyHomePage> {
   void _testDatabase() {
     // read
     database
-        .collection('test_collection')
+        .collection('access_points')
         .document('test_document')
         .get()
         .then((document) => print(document.data));
 
     // write
     database
-        .collection('test_collection')
+        .collection('access_points')
         .document('new_test_document')
         .setData({'test_field': 'test_string'});
   }
