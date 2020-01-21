@@ -1,5 +1,6 @@
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
+import 'package:wlocation/components/map_view.dart';
 import 'package:wlocation/models/scan_result.dart';
 import 'package:wlocation/services/wifi_scanner.dart';
 
@@ -11,8 +12,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// Set [Duration] between each WiFi scan.
   static const _scanWaitTime = const Duration(seconds: 30);
+
   /// [RestartableTimer] used to scan for Wifi every [_scanWaitTime] seconds.
   RestartableTimer _scanTimer;
+
   /// [List] of [ScanResult] obtained with each WiFi scan.
   List<ScanResult> _wifiResults = [];
 
@@ -56,20 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text('Home'),
       ),
-      body: Center(
-        child: ListView.builder(
-          padding: EdgeInsets.all(10.0),
-          itemCount: _wifiResults.length,
-          itemBuilder: (BuildContext context, int index) {
-            return _rowItem(_wifiResults[index]);
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _scanWifi,
-        tooltip: 'Increment',
-        child: Icon(Icons.search),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: MapView(),
     );
   }
 }
