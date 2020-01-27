@@ -10,6 +10,9 @@ class WifiScanner {
   static Future<List<ScanResult>> getWifiResults() async {
     List<Map<dynamic, dynamic>> wifiResults = [];
     wifiResults = await _platform.invokeListMethod('getWifiResults');
-    return wifiResults.map((result) => ScanResult(result: result)).toList();
+    return wifiResults
+        .where((result) => result['ssid'] == 'eduroam')
+        .map((result) => ScanResult(result: result))
+        .toList();
   }
 }

@@ -37,8 +37,7 @@ class MainActivity : FlutterActivity() {
               "ssid" to it.SSID,
               "bssid" to it.BSSID,
               "frequency" to it.frequency,
-              "level" to it.level,
-              "levelpct" to WifiManager.calculateSignalLevel(it.level, 100)
+              "level" to it.level
       )
     }
   }
