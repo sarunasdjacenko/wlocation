@@ -2,12 +2,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /access_points/{document=**} {
-      allow read: if is_authenticated();
+      allow read;
       allow write: if is_admin();
-    }
-
-    function is_authenticated() {
-      return request.auth != null;
     }
 
     function is_admin() {

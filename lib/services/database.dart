@@ -17,28 +17,49 @@ class Database extends Backend {
       .document(_location)
       .collection('fingerprints');
 
-  static void addFingerprint(List<ScanResult> dataset, Offset position) {
-    dataset.forEach((result) {
-      final data = [
-        {
-          'distance': result.distance,
-          'location': {'x': position.dx, 'y': position.dy}
-        }
-      ];
+  /// Get the fingerprints that match the BSSIDs scanned
+  static Future<Map> getFingerprints(List<ScanResult> scanResults) async {
+    final bssids = scanResults.map((result) => result.bssid);
+    // Split BSSIDs into groups of 10, to reduce the number of queries
+    final bssidGroups = [];
+    for (var i = 0; i < bssids.length; i += 10)
+      bssidGroups.add(bssids.skip(i).take(10).toList());
+    // Get the fingerprints that match the BSSID groups
+    final futures = <Future<QuerySnapshot>>[];
+    for (var group in bssidGroups)
+      futures.add(_fingerprints.where('bssid', whereIn: group).getDocuments());
+    final querySnapshots = await Future.wait(futures);
+    // Format the data
+    final fingerprints = {};
+    querySnapshots.forEach(
+      (querySnapshot) => querySnapshot.documents.forEach((documentSnapshot) {
+        final bssid = documentSnapshot.data['bssid'];
+        documentSnapshot.data['dataset'].forEach((data) {
+          final location = Offset(data['location']['x'], data['location']['y']);
+          final fingerprint = {'bssid': bssid, 'distance': data['distance']};
+          (fingerprints[location] ??= []).add(fingerprint);
+        });
+      }),
+    );
+    return fingerprints;
+  }
 
-      _fingerprints
-          .where('bssid', isEqualTo: result.bssid)
-          .getDocuments()
-          .then((querySnapshot) {
-        final documents = querySnapshot.documents;
-        (documents.isEmpty)
-            ? _fingerprints
-                .document()
-                .setData({'bssid': result.bssid, 'dataset': data})
-            : documents.forEach((documentSnapshot) => _fingerprints
-                .document(documentSnapshot.documentID)
-                .updateData({'dataset': FieldValue.arrayUnion(data)}));
-      });
+  /// Add the fingerprints for each BSSID scanned
+  static void addFingerprints(List<ScanResult> scanResults, Offset position) {
+    final location = {'x': position.dx, 'y': position.dy};
+    scanResults.forEach((result) {
+      final data = [
+        {'distance': result.distance, 'location': location}
+      ];
+      _fingerprints.where('bssid', isEqualTo: result.bssid).getDocuments().then(
+          (querySnapshot) => (querySnapshot.documents.isEmpty)
+              ? _fingerprints
+                  .document()
+                  .setData({'bssid': result.bssid, 'dataset': data})
+              : querySnapshot.documents.forEach((documentSnapshot) =>
+                  _fingerprints
+                      .document(documentSnapshot.documentID)
+                      .updateData({'dataset': FieldValue.arrayUnion(data)})));
     });
   }
 }

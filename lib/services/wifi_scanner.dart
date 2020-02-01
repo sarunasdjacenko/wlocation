@@ -11,7 +11,7 @@ class WifiScanner {
     List<Map<dynamic, dynamic>> wifiResults = [];
     wifiResults = await _platform.invokeListMethod('getWifiResults');
     return wifiResults
-        .where((result) => result['ssid'] == 'eduroam')
+        // .where((result) => result['ssid'] == 'eduroam')
         .map((result) => ScanResult(result: result))
         .toList();
   }

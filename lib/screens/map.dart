@@ -34,7 +34,7 @@ class _MapScreenState extends State<MapScreen> {
     // _scanTimer.reset();
     List<ScanResult> wifiResults = await WifiScanner.getWifiResults();
     setState(() => _wifiResults = wifiResults);
-    Database.addFingerprint(_wifiResults, _markerOffsetOnImage);
+    Database.addFingerprints(_wifiResults, _markerOffsetOnImage);
   }
 
   void markerCallback(Offset markerOffsetOnImage) =>
