@@ -7,12 +7,10 @@ class WifiScanner {
 
   /// Invokes native method to scan for WiFi using, and returns the results.
   /// This is only implemented in Android (Kotlin) due to iOS limitations.
-  static Future<List<ScanResult>> getWifiResults() async {
-    List<Map<dynamic, dynamic>> wifiResults = [];
-    wifiResults = await _platform.invokeListMethod('getWifiResults');
-    return wifiResults
+  static Future<Map> getWifiResults() async {
+    final wifiResults = await _platform.invokeListMethod('getWifiResults');
+    return Map.fromEntries(wifiResults
         // .where((result) => result['ssid'] == 'eduroam')
-        .map((result) => ScanResult(result: result))
-        .toList();
+        .map((result) => ScanResult(result: result)));
   }
 }

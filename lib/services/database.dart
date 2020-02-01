@@ -18,9 +18,8 @@ class Database extends Backend {
       .collection('fingerprints');
 
   /// Get the fingerprints that match the BSSIDs scanned
-  static Future<Map> getFingerprints(List<ScanResult> scanResults) async {
-    final bssids = scanResults.map((result) => result.bssid);
-    // Split BSSIDs into groups of 10, to reduce the number of queries
+  static Future<Map> getFingerprints(Iterable bssids) async {
+    // Split BSSIDs into groups of upto 10, to reduce the number of queries
     final bssidGroups = [];
     for (var i = 0; i < bssids.length; i += 10)
       bssidGroups.add(bssids.skip(i).take(10).toList());
@@ -36,26 +35,26 @@ class Database extends Backend {
         final bssid = documentSnapshot.data['bssid'];
         documentSnapshot.data['dataset'].forEach((data) {
           final location = Offset(data['location']['x'], data['location']['y']);
-          final fingerprint = {'bssid': bssid, 'distance': data['distance']};
-          (fingerprints[location] ??= []).add(fingerprint);
+          final result = {'bssid': bssid, 'distance': data['distance']};
+          (fingerprints[location] ??= []).add(ScanResult(result: result));
         });
       }),
     );
     return fingerprints;
   }
 
-  /// Add the fingerprints for each BSSID scanned
-  static void addFingerprints(List<ScanResult> scanResults, Offset position) {
+  /// Add the fingerprints for each scan result
+  static void addFingerprints(Map scanResults, Offset position) {
     final location = {'x': position.dx, 'y': position.dy};
-    scanResults.forEach((result) {
+    scanResults.forEach((bssid, distance) {
       final data = [
-        {'distance': result.distance, 'location': location}
+        {'distance': distance, 'location': location}
       ];
-      _fingerprints.where('bssid', isEqualTo: result.bssid).getDocuments().then(
+      _fingerprints.where('bssid', isEqualTo: bssid).getDocuments().then(
           (querySnapshot) => (querySnapshot.documents.isEmpty)
               ? _fingerprints
                   .document()
-                  .setData({'bssid': result.bssid, 'dataset': data})
+                  .setData({'bssid': bssid, 'dataset': data})
               : querySnapshot.documents.forEach((documentSnapshot) =>
                   _fingerprints
                       .document(documentSnapshot.documentID)

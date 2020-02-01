@@ -14,13 +14,13 @@ class _MapScreenState extends State<MapScreen> {
   /// Set [Duration] between each WiFi scan.
   // static const _scanWaitTime = const Duration(seconds: 30);
 
-  /// [RestartableTimer] used to scan for Wifi every [_scanWaitTime] seconds.
+  /// [RestartableTimer] used to scan for Wifi every [_scanWaitTime] seconds
   // RestartableTimer _scanTimer;
 
-  /// [List] of [ScanResult] obtained with each WiFi scan.
-  List<ScanResult> _wifiResults = [];
+  /// [Map] of (bssid => distance) for each access point scanned
+  Map _wifiResults = {};
 
-  /// Offset of the marker on the image
+  /// [Offset] of the marker on the image
   Offset _markerOffsetOnImage;
 
   // @override
@@ -32,9 +32,10 @@ class _MapScreenState extends State<MapScreen> {
   /// Scan WiFi, and restart the timer.
   void _scanWifi() async {
     // _scanTimer.reset();
-    List<ScanResult> wifiResults = await WifiScanner.getWifiResults();
+    final wifiResults = await WifiScanner.getWifiResults();
     setState(() => _wifiResults = wifiResults);
     Database.addFingerprints(_wifiResults, _markerOffsetOnImage);
+    // final fingerprints = await Database.getFingerprints(_wifiResults.keys);
   }
 
   void markerCallback(Offset markerOffsetOnImage) =>
