@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wlocation/components/user_provider.dart';
+import 'package:wlocation/screens/venues.dart';
 import 'package:wlocation/services/backend.dart';
-import 'package:wlocation/screens/map.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -8,12 +9,14 @@ void main() async {
   await Backend.initFirebase();
   // Launch the app
   runApp(
-    MaterialApp(
-      title: 'wlocation',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    UserProvider(
+      child: MaterialApp(
+        title: 'wlocation',
+        theme: ThemeData(
+          primarySwatch: Colors.pink,
+        ),
+        home: VenuesScreen(),
       ),
-      home: MapScreen(),
     ),
   );
 }

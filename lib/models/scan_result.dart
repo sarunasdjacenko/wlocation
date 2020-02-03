@@ -18,9 +18,9 @@ class ScanResult implements MapEntry {
   /// c / 4π,  and convert frequency from MHz to Hz
   static const double _kMultiplier = _kSpeedOfLight / (4 * pi * 1000000);
 
-  /// Calculate the distance if it is not given
+  /// Calculates the distance if it is not given
   /// Derivation from Friis' transmission equation is shown in the report
-  ScanResult({@required Map<dynamic, dynamic> result})
+  ScanResult({@required Map result})
       : this.key = result['bssid'],
         this.value = result['distance'] ??
             pow(10, -result['level'] / 20) * _kMultiplier / result['frequency'];

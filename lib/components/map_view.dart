@@ -50,17 +50,16 @@ class _MapViewState extends State<MapView> {
             setState(() => _positionOnScreen = details.localPosition);
           },
         ),
-        _positionOnScreen != null
-            ? Positioned(
-                child: Icon(
-                  Icons.location_on,
-                  color: Colors.red,
-                  size: _iconSize,
-                ),
-                left: _positionOnScreen.dx - _iconSize / 2,
-                top: _positionOnScreen.dy - _iconSize,
-              )
-            : Container(),
+        if (_positionOnScreen != null)
+          Positioned(
+            child: Icon(
+              Icons.location_on,
+              color: Colors.red,
+              size: _iconSize,
+            ),
+            left: _positionOnScreen.dx - _iconSize / 2,
+            top: _positionOnScreen.dy - _iconSize,
+          ),
       ],
     );
   }
