@@ -2,9 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class LocationFinder {
-  /// Find user location using best mean square difference
+  /// Find user location using Mean Squared Error
   /// between the scan results and the fingerprints.
-  static Offset bestMeanSquareDifference({
+  static Offset bestMeanSquaredError({
     @required Map wifiResults,
     @required Map fingerprints,
   }) {

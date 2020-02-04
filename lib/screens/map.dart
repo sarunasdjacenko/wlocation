@@ -44,7 +44,7 @@ class MapScreenState extends State<MapScreen> {
 
   void _findUserLocation() async {
     final fingerprints = await _getFingerprints();
-    final bestLocationMatch = LocationFinder.bestMeanSquareDifference(
+    final bestLocationMatch = LocationFinder.bestMeanSquaredError(
       wifiResults: _wifiResults,
       fingerprints: fingerprints,
     );
@@ -53,9 +53,9 @@ class MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!UserProvider.of(context).isSignedIn()) {
-      _markerOffsetOnImage = null;
-    }
+    // if (!UserProvider.of(context).isSignedIn()) {
+    //   _markerOffsetOnImage = null;
+    // }
     return CustomScaffold(
       backEnabled: true,
       scanButton: CustomFloatingActionButton(
