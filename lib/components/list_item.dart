@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 class ListItem extends StatelessWidget {
   final String title;
-  final Widget page;
-  final Function beforePageCreate;
+  final Widget child;
 
-  ListItem({@required this.title, @required this.page, this.beforePageCreate});
+  ListItem({@required this.title, @required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -13,15 +12,10 @@ class ListItem extends StatelessWidget {
       children: <Widget>[
         ListTile(
           title: Text(title, style: const TextStyle(fontSize: 65)),
-          onTap: () {
-            beforePageCreate();
-            Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, a1, a2) => page,
-              ),
-            );
-          },
+          onTap: () => Navigator.push(
+            context,
+            PageRouteBuilder(pageBuilder: (context, a1, a2) => child),
+          ),
         ),
         const Divider(height: 0.0),
       ],

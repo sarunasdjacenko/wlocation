@@ -18,7 +18,6 @@ class _VenuesScreenState extends State<VenuesScreen> {
   @override
   void initState() {
     super.initState();
-    Database.setVenue(null);
     _getVenues();
   }
 
@@ -28,14 +27,12 @@ class _VenuesScreenState extends State<VenuesScreen> {
       backEnabled: false,
       body: ListView.builder(
         itemCount: _venues.length,
-        itemBuilder: (BuildContext context, int index) {
-          final venue = _venues[index];
-          return ListItem(
-            title: venue['name'],
-            page: LocationsScreen(),
-            beforePageCreate: () => Database.setVenue(venue['id']),
-          );
-        },
+        itemBuilder: (BuildContext context, int index) => ListItem(
+          title: _venues[index]['name'],
+          child: LocationsScreen(
+            venue: _venues[index]['id'],
+          ),
+        ),
       ),
     );
   }

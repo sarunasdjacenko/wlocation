@@ -7,23 +7,16 @@ import 'package:wlocation/services/backend.dart';
 class Database extends Backend {
   static final _firestore = Firestore(app: Backend.firebaseApp);
 
-  static String _venue;
-  static String _location;
+  static CollectionReference _venues() => _firestore.collection('venues');
 
-  static void setVenue(String venue) => _venue = venue;
+  static CollectionReference _locations(String venue) =>
+      _venues().document(venue).collection('locations');
 
-  static void setLocation(String location) => _location = location;
-
-  static CollectionReference get _venues => _firestore.collection('venues');
-
-  static CollectionReference get _locations =>
-      _venues.document(_venue).collection('locations');
-
-  static CollectionReference get _fingerprints =>
-      _locations.document(_location).collection('fingerprints');
+  static CollectionReference _fingerprints(String venue, String location) =>
+      _locations(venue).document(location).collection('fingerprints');
 
   static Future<List<Map>> getVenues() async {
-    final querySnapshot = await _venues.getDocuments();
+    final querySnapshot = await _venues().getDocuments();
     return querySnapshot.documents
         .map((documentSnapshot) => {
               'name': documentSnapshot.data['name'],
@@ -32,8 +25,10 @@ class Database extends Backend {
         .toList();
   }
 
-  static Future<List> getLocations() async {
-    final querySnapshot = await _locations.getDocuments();
+  static Future<List> getLocations({
+    String venue,
+  }) async {
+    final querySnapshot = await _locations(venue).getDocuments();
     return querySnapshot.documents
         .map((documentSnapshot) => {
               'name': documentSnapshot.data['name'],
@@ -43,7 +38,12 @@ class Database extends Backend {
   }
 
   /// Get the fingerprints that match the BSSIDs scanned
-  static Future<Map> getFingerprints(Iterable bssids) async {
+  static Future<Map> getFingerprints({
+    String venue,
+    String location,
+    Iterable bssids,
+  }) async {
+    final fingerprintsColReference = _fingerprints(venue, location);
     // Split BSSIDs into groups of upto 10, to reduce the number of queries
     final bssidGroups = [];
     for (var i = 0; i < bssids.length; i += 10)
@@ -51,7 +51,9 @@ class Database extends Backend {
     // Get the fingerprints that match the BSSID groups
     final futures = <Future<QuerySnapshot>>[];
     for (var group in bssidGroups)
-      futures.add(_fingerprints.where('bssid', whereIn: group).getDocuments());
+      futures.add(fingerprintsColReference
+          .where('bssid', whereIn: group)
+          .getDocuments());
     final querySnapshots = await Future.wait(futures);
     // Format the data
     final fingerprints = {};
@@ -59,9 +61,9 @@ class Database extends Backend {
       (querySnapshot) => querySnapshot.documents.forEach((documentSnapshot) {
         final bssid = documentSnapshot.data['bssid'];
         documentSnapshot.data['dataset'].forEach((data) {
-          final location = Offset(data['location']['x'], data['location']['y']);
+          final position = Offset(data['position']['x'], data['position']['y']);
           final result = {'bssid': bssid, 'distance': data['distance']};
-          (fingerprints[location] ??= []).add(ScanResult(result: result));
+          (fingerprints[position] ??= []).add(ScanResult(result: result));
         });
       }),
     );
@@ -69,19 +71,27 @@ class Database extends Backend {
   }
 
   /// Add the fingerprints for each scan result
-  static void addFingerprints(Map scanResults, Offset position) {
-    final location = {'x': position.dx, 'y': position.dy};
+  static void addFingerprints({
+    String venue,
+    String location,
+    Map scanResults,
+    Offset markerOffsetOnImage,
+  }) {
+    final fingerprintsColReference = _fingerprints(venue, location);
+    final position = {'x': markerOffsetOnImage.dx, 'y': markerOffsetOnImage.dy};
     scanResults.forEach((bssid, distance) {
       final data = [
-        {'distance': distance, 'location': location}
+        {'distance': distance, 'position': position}
       ];
-      _fingerprints.where('bssid', isEqualTo: bssid).getDocuments().then(
-          (querySnapshot) => (querySnapshot.documents.isEmpty)
-              ? _fingerprints
+      fingerprintsColReference
+          .where('bssid', isEqualTo: bssid)
+          .getDocuments()
+          .then((querySnapshot) => (querySnapshot.documents.isEmpty)
+              ? fingerprintsColReference
                   .document()
                   .setData({'bssid': bssid, 'dataset': data})
               : querySnapshot.documents.forEach((documentSnapshot) =>
-                  _fingerprints
+                  fingerprintsColReference
                       .document(documentSnapshot.documentID)
                       .updateData({'dataset': FieldValue.arrayUnion(data)})));
     });

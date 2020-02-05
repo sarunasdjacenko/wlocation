@@ -8,6 +8,11 @@ import 'package:wlocation/services/database.dart';
 import 'package:wlocation/services/wifi_scanner.dart';
 
 class MapScreen extends StatefulWidget {
+  final String venue;
+  final String location;
+
+  MapScreen({@required this.venue, @required this.location});
+
   static _MarkerData of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_MarkerData>();
 
@@ -30,7 +35,12 @@ class MapScreenState extends State<MapScreen> {
       final wifiResults = await WifiScanner.getWifiResults();
       if (wifiResults != _wifiResults) {
         _wifiResults = wifiResults;
-        Database.addFingerprints(_wifiResults, _markerOffsetOnImage);
+        Database.addFingerprints(
+          venue: widget.venue,
+          location: widget.location,
+          scanResults: _wifiResults,
+          markerOffsetOnImage: _markerOffsetOnImage,
+        );
       }
     }
   }
@@ -40,7 +50,11 @@ class MapScreenState extends State<MapScreen> {
     final wifiResults = await WifiScanner.getWifiResults();
     if (_wifiResults != wifiResults) {
       _wifiResults = wifiResults;
-      fingerprints = await Database.getFingerprints(_wifiResults.keys);
+      fingerprints = await Database.getFingerprints(
+        venue: widget.venue,
+        location: widget.location,
+        bssids: _wifiResults.keys,
+      );
     }
     return fingerprints;
   }
