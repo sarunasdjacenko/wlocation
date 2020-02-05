@@ -8,6 +8,9 @@ import 'package:wlocation/services/database.dart';
 import 'package:wlocation/services/wifi_scanner.dart';
 
 class MapScreen extends StatefulWidget {
+  static _MarkerData of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_MarkerData>();
+
   @override
   State<StatefulWidget> createState() => MapScreenState();
 }
@@ -48,14 +51,11 @@ class MapScreenState extends State<MapScreen> {
       wifiResults: _wifiResults,
       fingerprints: fingerprints,
     );
-    setState(() => _markerOffsetOnImage = bestLocationMatch);
+    _setMarkerOffsetOnImage(bestLocationMatch);
   }
 
   @override
   Widget build(BuildContext context) {
-    // if (!UserProvider.of(context).isSignedIn()) {
-    //   _markerOffsetOnImage = null;
-    // }
     return CustomScaffold(
       backEnabled: true,
       scanButton: CustomFloatingActionButton(
@@ -63,11 +63,27 @@ class MapScreenState extends State<MapScreen> {
             ? _addFingerprints
             : _findUserLocation,
       ),
-      body: MapView(
-        image: AssetImage('assets/BH7.jpg'),
+      body: _MarkerData(
         markerOffsetOnImage: _markerOffsetOnImage,
         setMarkerOffsetOnImage: _setMarkerOffsetOnImage,
+        child: MapView(image: AssetImage('assets/BH7.jpg')),
       ),
     );
   }
+}
+
+class _MarkerData extends InheritedWidget {
+  /// [Offset] of the marker on the image.
+  final Offset markerOffsetOnImage;
+  final ValueChanged<Offset> setMarkerOffsetOnImage;
+
+  _MarkerData({
+    @required Widget child,
+    @required this.markerOffsetOnImage,
+    this.setMarkerOffsetOnImage,
+  }) : super(child: child);
+
+  @override
+  bool updateShouldNotify(_MarkerData old) =>
+      markerOffsetOnImage != old.markerOffsetOnImage;
 }

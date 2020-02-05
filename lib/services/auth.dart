@@ -15,19 +15,19 @@ class Auth extends Backend {
   static void signInWithEmailAndPassword(
           {@required String email,
           @required String password,
-          Function callback}) =>
+          Function onAuthChanged}) =>
       _auth
           .signInWithEmailAndPassword(email: email, password: password)
-          .then((authResult) => callback?.call(authResult.user));
+          .then((authResult) => onAuthChanged?.call(authResult.user));
 
   /// Signs the user in using a Custom Firebase Auth Token.
   static void signInWithCustomToken(
-          {@required String token, Function callback}) =>
+          {@required String token, Function onAuthChanged}) =>
       _auth
           .signInWithCustomToken(token: token)
-          .then((authResult) => callback?.call(authResult.user));
+          .then((authResult) => onAuthChanged?.call(authResult.user));
 
   /// Signs out the current user.
-  static void signOut({Function callback}) =>
-      _auth.signOut().then((_) => callback?.call(null));
+  static void signOut({Function onAuthChanged}) =>
+      _auth.signOut().then((_) => onAuthChanged?.call(null));
 }

@@ -34,8 +34,8 @@ class _UserProviderState extends State<UserProvider> {
   Widget build(BuildContext context) {
     return _UserData(
       _user,
-      child: widget.child,
       setUser: setUser,
+      child: widget.child,
     );
   }
 }
@@ -52,5 +52,5 @@ class _UserData extends InheritedWidget {
   bool isSignedIn() => _user != null;
 
   @override
-  bool updateShouldNotify(_UserData oldWidget) => true;
+  bool updateShouldNotify(_UserData old) => _user != old._user;
 }

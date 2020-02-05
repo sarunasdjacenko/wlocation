@@ -1,22 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:wlocation/components/user_provider.dart';
+import 'package:wlocation/screens/map.dart';
 
 class MapView extends StatefulWidget {
-  MapView({
-    @required this.image,
-    this.markerOffsetOnImage,
-    this.setMarkerOffsetOnImage,
-  });
+  MapView({@required this.image});
 
-  /// Image used as the map/
+  /// Image used as the map.
   final AssetImage image;
-
-  /// The marker offset on the image.
-  final Offset markerOffsetOnImage;
-
-  /// Callback function to set the marker offset on the image.
-  final Function(Offset) setMarkerOffsetOnImage;
 
   @override
   State<StatefulWidget> createState() => _MapViewState();
@@ -30,35 +21,33 @@ class _MapViewState extends State<MapView> {
   Offset _positionOnScreen;
 
   /// Controller for [PhotoView].
-  PhotoViewController _controller;
+  PhotoViewController _viewController;
 
   /// Controller Offset from center of the image.
-  Offset _controllerOffset;
+  Offset _viewOffset;
 
   /// Controller Scale of the image relative to the size of the screen.
-  double _controllerScale;
+  double _viewScale;
 
   /// Set the offset on the image which corresponds to the screen tap position.
   void _setMarkerOffsetOnImage(Offset positionOnScreen) {
-    if (positionOnScreen == null)
-      widget.setMarkerOffsetOnImage?.call(null);
-    else {
+    var offsetOnImage;
+    if (positionOnScreen != null) {
       final viewSize = context.findRenderObject().paintBounds.size;
       final offsetOnScreen =
           positionOnScreen.translate(-viewSize.width / 2, -viewSize.height / 2);
-      final offsetOnImage =
-          (offsetOnScreen - _controllerOffset) / _controllerScale;
-      widget.setMarkerOffsetOnImage?.call(offsetOnImage);
+      offsetOnImage = (offsetOnScreen - _viewOffset) / _viewScale;
     }
+    MapScreen.of(context).setMarkerOffsetOnImage(offsetOnImage);
   }
 
   /// Set the position marker on the screen, when the image is scaled/panned.
   void _setMarkerPositionOnScreen() {
     var positionOnScreen;
-    if (widget.markerOffsetOnImage != null) {
+    final offsetOnImage = MapScreen.of(context).markerOffsetOnImage;
+    if (offsetOnImage != null) {
       final viewSize = context.findRenderObject().paintBounds.size;
-      final offsetOnScreen =
-          (widget.markerOffsetOnImage * _controllerScale) + _controllerOffset;
+      final offsetOnScreen = (offsetOnImage * _viewScale) + _viewOffset;
       positionOnScreen =
           offsetOnScreen.translate(viewSize.width / 2, viewSize.height / 2);
     }
@@ -66,22 +55,22 @@ class _MapViewState extends State<MapView> {
   }
 
   /// Listener for image panning and scaling.
-  void _controllerListener(PhotoViewControllerValue value) {
-    _controllerOffset = value.position;
-    _controllerScale = value.scale;
+  void _viewControllerListener(PhotoViewControllerValue value) {
+    _viewOffset = value.position;
+    _viewScale = value.scale;
     setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    _controller = PhotoViewController()
-      ..outputStateStream.listen(_controllerListener);
+    _viewController = PhotoViewController()
+      ..outputStateStream.listen(_viewControllerListener);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _viewController.dispose();
     super.dispose();
   }
 
@@ -92,17 +81,17 @@ class _MapViewState extends State<MapView> {
       children: <Widget>[
         PhotoView(
           imageProvider: widget.image,
-          backgroundDecoration: BoxDecoration(color: Colors.white),
+          backgroundDecoration: const BoxDecoration(color: Colors.white),
           minScale: PhotoViewComputedScale.covered,
-          controller: _controller,
-          onTapUp: (context, details, controllerValue) =>
+          controller: _viewController,
+          onTapUp: (context, details, _) =>
               UserProvider.of(context).isSignedIn()
                   ? _setMarkerOffsetOnImage(details.localPosition)
                   : null,
         ),
         if (_positionOnScreen != null)
           Positioned(
-            child: Icon(
+            child: const Icon(
               Icons.location_on,
               color: Colors.red,
               size: _iconSize,
