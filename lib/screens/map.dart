@@ -21,6 +21,9 @@ class MapScreen extends StatefulWidget {
 }
 
 class MapScreenState extends State<MapScreen> {
+  /// The k to use in k-nearest neighbours.
+  final int _kNearestNeighbours = 3;
+
   /// [Map] of (bssid => distance) for each access point scanned.
   Map _wifiResults = {};
 
@@ -61,9 +64,10 @@ class MapScreenState extends State<MapScreen> {
 
   void _findUserLocation() async {
     final fingerprints = await _getFingerprints();
-    final bestLocationMatch = LocationFinder.bestMeanSquaredError(
+    final bestLocationMatch = LocationFinder.wknnRegression(
       wifiResults: _wifiResults,
       fingerprints: fingerprints,
+      k: _kNearestNeighbours,
     );
     _setMarkerOffsetOnImage(bestLocationMatch);
   }
