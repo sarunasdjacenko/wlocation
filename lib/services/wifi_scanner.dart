@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
-import 'package:wlocation/models/scan_result.dart';
+
+import '../models/models.dart';
 
 class WifiScanner {
   /// [MethodChannel] on which to invoke native methods.

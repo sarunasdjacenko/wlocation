@@ -1,8 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
-import 'package:wlocation/screens/map.dart';
+
+import '../screens/screens.dart';
+import '../services/services.dart';
 
 class MapView extends StatefulWidget {
   MapView({@required this.image});

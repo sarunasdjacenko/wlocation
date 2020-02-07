@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:wlocation/models/scan_result.dart';
+
+import '../models/models.dart';
 
 /// Database implemented using Cloud Firestore, a NoSQL database
 class Database {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wlocation/components/custom_scaffold.dart';
-import 'package:wlocation/components/list_item.dart';
-import 'package:wlocation/screens/map.dart';
-import 'package:wlocation/services/database.dart';
+
+import '../components/components.dart';
+import '../services/services.dart';
+import 'map.dart';
 
 class LocationsScreen extends StatefulWidget {
   final String venue;

@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 /// Scan Result object, containing relevant information from the scan

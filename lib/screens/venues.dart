@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wlocation/components/custom_scaffold.dart';
-import 'package:wlocation/components/list_item.dart';
-import 'package:wlocation/screens/locations.dart';
-import 'package:wlocation/services/database.dart';
+
+import '../components/components.dart';
+import '../services/services.dart';
+import 'locations.dart';
 
 class VenuesScreen extends StatefulWidget {
   @override

@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+export 'package:firebase_auth/firebase_auth.dart';
+
 /// Auth implemented using Firebase Auth.
 class Auth {
   /// Sets up Firebase Auth.

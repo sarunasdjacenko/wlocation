@@ -1,12 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wlocation/components/custom_floating_action_button.dart';
-import 'package:wlocation/components/custom_scaffold.dart';
-import 'package:wlocation/components/map_view.dart';
-import 'package:wlocation/models/location_finder.dart';
-import 'package:wlocation/services/database.dart';
-import 'package:wlocation/services/wifi_scanner.dart';
+
+import '../components/components.dart';
+import '../services/services.dart';
 
 class MapScreen extends StatefulWidget {
   final String venue;

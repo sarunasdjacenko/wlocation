@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wlocation/services/auth.dart';
+
+import '../services/services.dart';
 
 class CustomDrawer extends StatelessWidget {
   @override
