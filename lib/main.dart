@@ -1,17 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wlocation/components/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:wlocation/screens/venues.dart';
-import 'package:wlocation/services/backend.dart';
+
+import 'services/auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialise Firebase services
-  await Backend.initFirebase();
-  // Launch the app
   runApp(
-    UserProvider(
+    MultiProvider(
+      providers: [
+        StreamProvider<UserInfo>.value(value: Auth.currentUser)
+      ],
       child: MaterialApp(
-        title: 'wlocation',
         theme: ThemeData(
           primarySwatch: Colors.pink,
         ),

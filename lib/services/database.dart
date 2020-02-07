@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:wlocation/models/scan_result.dart';
-import 'package:wlocation/services/backend.dart';
 
 /// Database implemented using Cloud Firestore, a NoSQL database
-class Database extends Backend {
-  static final _firestore = Firestore(app: Backend.firebaseApp);
+class Database {
+  static final _firestore = Firestore.instance;
 
   static CollectionReference _venues() => _firestore.collection('venues');
 

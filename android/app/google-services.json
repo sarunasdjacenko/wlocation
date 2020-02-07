@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "441823800386",
+    "firebase_url": "https://wlocation.firebaseio.com",
+    "project_id": "wlocation",
+    "storage_bucket": "wlocation.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:441823800386:android:e407e8edf1f27be5ff11db",
+        "android_client_info": {
+          "package_name": "com.sarunasdjacenko.wlocation"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "441823800386-ffvflukhnun4hm6fsemb6qmoae3f369d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuuqXG4IUQ1c4pXfFbhyc0k3Vl_85XwTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "441823800386-ffvflukhnun4hm6fsemb6qmoae3f369d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "441823800386-pch578phcu50mf881kpi6h4bagcqm1t6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sarunasdjacenko.wlocation"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

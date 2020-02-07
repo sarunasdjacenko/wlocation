@@ -1,5 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wlocation/components/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class CustomBottomAppBar extends StatelessWidget {
   final bool backButtonEnabled;
@@ -12,8 +13,9 @@ class CustomBottomAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserInfo>(context);
     return BottomAppBar(
-      shape: UserProvider.of(context).isSignedIn() && scanButtonEnabled
+      shape: user != null && scanButtonEnabled
           ? const CircularNotchedRectangle()
           : null,
       child: Row(

@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:wlocation/components/custom_floating_action_button.dart';
 import 'package:wlocation/components/custom_scaffold.dart';
 import 'package:wlocation/components/map_view.dart';
-import 'package:wlocation/components/user_provider.dart';
 import 'package:wlocation/models/location_finder.dart';
 import 'package:wlocation/services/database.dart';
 import 'package:wlocation/services/wifi_scanner.dart';
@@ -74,13 +75,11 @@ class MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserInfo>(context);
     return CustomScaffold(
       backEnabled: true,
       scanButton: CustomFloatingActionButton(
-        onPressed: UserProvider.of(context).isSignedIn()
-            ? _addFingerprints
-            : _findUserLocation,
-      ),
+          onPressed: user != null ? _addFingerprints : _findUserLocation),
       body: _MarkerData(
         markerOffsetOnImage: _markerOffsetOnImage,
         setMarkerOffsetOnImage: _setMarkerOffsetOnImage,

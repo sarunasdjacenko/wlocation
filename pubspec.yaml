@@ -24,6 +24,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
 
+  # The following adds Provider.
+  provider: ^4.0.3
+
   # The following adds Cloud Firestore.
   cloud_firestore: ^0.13.0+1
 
