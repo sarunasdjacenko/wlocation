@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../models/models.dart';
+import 'models.dart';
 
 /// Database implemented using Cloud Firestore, a NoSQL database
 class Database {
@@ -56,14 +56,14 @@ class Database {
           .getDocuments());
     final querySnapshots = await Future.wait(futures);
     // Format the data
-    final fingerprints = {};
+    final fingerprints = <Offset, List<MapEntry<String, double>>>{};
     querySnapshots.forEach(
       (querySnapshot) => querySnapshot.documents.forEach((documentSnapshot) {
         final bssid = documentSnapshot.data['bssid'];
         documentSnapshot.data['dataset'].forEach((data) {
-          final position = Offset(data['position']['x'], data['position']['y']);
-          final result = {'bssid': bssid, 'distance': data['distance']};
-          (fingerprints[position] ??= []).add(ScanResult(result: result));
+          final position = Position.fromMap(data['position']);
+          final result = MapEntry<String, double>(bssid, data['distance']);
+          (fingerprints[position] ??= []).add(result);
         });
       }),
     );

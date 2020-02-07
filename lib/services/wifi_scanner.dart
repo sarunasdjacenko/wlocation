@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-import '../models/models.dart';
+import 'models.dart';
 
 class WifiScanner {
   /// [MethodChannel] on which to invoke native methods.
@@ -12,6 +12,6 @@ class WifiScanner {
     final wifiResults = await _platform.invokeListMethod('getWifiResults');
     return Map.fromEntries(wifiResults
         // .where((result) => result['ssid'] == 'eduroam')
-        .map((result) => ScanResult(result: result)));
+        .map((result) => ScanResult.fromMap(result)));
   }
 }

@@ -2,9 +2,14 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import 'models.dart';
+
 class LocationFinder {
   /// Evaluation for k-nearest neighbours regression, using Euclidean distance.
-  static double _meanSquaredError(Map wifiResults, List data) {
+  static double meanSquaredError(
+    Map wifiResults,
+    List<MapEntry<String, double>> data,
+  ) {
     var sumSquaredError = 0.0;
     data.forEach((result) =>
         sumSquaredError += pow(wifiResults[result.bssid] - result.distance, 2));
@@ -14,17 +19,14 @@ class LocationFinder {
   /// Algorithm for weighted k-nearest neighbours algorithm.
   /// Equivalent to k-nearest neighbours when weightFunction is constant.
   static Offset _wknnRegressionAlgorithm(
-    Map wifiResults,
-    Map fingerprints,
-    int k, {
-    @required Function weightFunction,
+    Map dataset,
+    int kNeighbours, {
+    Function weightFunction,
   }) {
-    final dataset = fingerprints?.map((position, data) =>
-        MapEntry(position, _meanSquaredError(wifiResults, data)));
     // Sort dataset with evaluation function, and take the k-nearest neighbours.
     final neighbours = (dataset.entries.toList(growable: false)
           ..sort((curr, next) => curr.value.compareTo(next.value)))
-        .take(k);
+        .take(kNeighbours);
     if (neighbours.isNotEmpty) {
       // Find the sum of weighted positions, and the sum of weights.
       var sumOfWeightedPositions = Offset.zero, sumOfWeights = 0.0;
@@ -40,20 +42,12 @@ class LocationFinder {
   }
 
   /// Find user position using k-nearest neighbours regression.
-  static Offset knnRegression({
-    @required Map wifiResults,
-    @required Map fingerprints,
-    @required int k,
-  }) =>
-      _wknnRegressionAlgorithm(wifiResults, fingerprints, k,
+  static Offset knnRegression({Map dataset, int kNeighbours}) =>
+      _wknnRegressionAlgorithm(dataset, kNeighbours,
           weightFunction: (evaluation) => 1.0);
 
   /// Find user position using weighted k-nearest neighbours regression.
-  static Offset wknnRegression({
-    @required Map wifiResults,
-    @required Map fingerprints,
-    @required int k,
-  }) =>
-      _wknnRegressionAlgorithm(wifiResults, fingerprints, k,
+  static Offset wknnRegression({Map dataset, int kNeighbours}) =>
+      _wknnRegressionAlgorithm(dataset, kNeighbours,
           weightFunction: (evaluation) => 1.0 / evaluation);
 }

@@ -61,10 +61,11 @@ class MapScreenState extends State<MapScreen> {
 
   void _findUserLocation() async {
     final fingerprints = await _getFingerprints();
+    final dataset = fingerprints?.map((position, data) => MapEntry(
+        position, LocationFinder.meanSquaredError(_wifiResults, data)));
     final bestLocationMatch = LocationFinder.wknnRegression(
-      wifiResults: _wifiResults,
-      fingerprints: fingerprints,
-      k: _kNearestNeighbours,
+      dataset: dataset,
+      kNeighbours: _kNearestNeighbours,
     );
     _setMarkerOffsetOnImage(bestLocationMatch);
   }
