@@ -12,6 +12,6 @@ class WifiScanner {
     final wifiResults = await _platform.invokeListMethod('getWifiResults');
     return Map.fromEntries(wifiResults
         // .where((result) => result['ssid'] == 'eduroam')
-        .map((result) => ScanResult.fromMap(result)));
+        .map((result) => ScanData.fromMap(result)));
   }
 }

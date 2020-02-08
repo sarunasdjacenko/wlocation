@@ -56,14 +56,14 @@ class Database {
           .getDocuments());
     final querySnapshots = await Future.wait(futures);
     // Format the data
-    final fingerprints = <Offset, List<MapEntry<String, double>>>{};
+    final fingerprints = {};
     querySnapshots.forEach(
       (querySnapshot) => querySnapshot.documents.forEach((documentSnapshot) {
         final bssid = documentSnapshot.data['bssid'];
         documentSnapshot.data['dataset'].forEach((data) {
-          final position = Position.fromMap(data['position']);
-          final result = MapEntry<String, double>(bssid, data['distance']);
-          (fingerprints[position] ??= []).add(result);
+          final position = ExtendedOffset.fromMap(data['position']);
+          final scanData = ScanData(bssid, data['distance']);
+          (fingerprints[position] ??= []).add(scanData);
         });
       }),
     );

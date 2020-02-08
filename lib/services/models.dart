@@ -2,28 +2,36 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-extension Position on Offset {
-  /// Creates an [Offset] from a [Map].
+extension ExtendedOffset on Offset {
+  /// Creates an [Offset] object from a [Map], using keys 'x' and 'y'.
   static Offset fromMap(Map data) {
     return Offset(data['x'], data['y']);
   }
 }
 
-extension PositionEvaluation on MapEntry<Offset, double> {
+class PositionData implements MapEntry<Offset, double> {
+  final Offset key;
+  final double value;
+
   /// The position to be evaluated.
   Offset get position => key;
 
   /// The evaluation of the position.
   double get evaluation => value;
+
+  /// Constructor for [PositionData].
+  PositionData(this.key, this.value);
 }
 
-extension ScanResult on MapEntry<String, double> {
+class ScanData implements MapEntry<String, double> {
   /// The speed of light in a vacuum, in m/s.
   static const int _kSpeedOfLight = 299792458;
 
   /// c / 4π,  and convert frequency from MHz to Hz.
-  static const double _kMultiplier =
-      ScanResult._kSpeedOfLight / (4 * pi * 1000000);
+  static const double _kMultiplier = _kSpeedOfLight / (4 * pi * 1000000);
+
+  final String key;
+  final double value;
 
   /// The bssid of the access point.
   String get bssid => key;
@@ -31,8 +39,15 @@ extension ScanResult on MapEntry<String, double> {
   /// The estimated distance to the access point.
   double get distance => value;
 
-  /// Creates a [MapEntry] with key bssid, value distance.
+  /// Constructor for [ScanData].
+  ScanData(this.key, this.value);
+
+  /// Creates a [ScanData] object from a [Map].
   /// Distance is derived from Friis' transmission equation.
-  static MapEntry<String, double> fromMap(Map data) => MapEntry(data['bssid'],
-      pow(10, -data['level'] / 20) * _kMultiplier / data['frequency']);
+  factory ScanData.fromMap(Map data) {
+    return ScanData(
+        data['bssid'],
+        data['distance'] ??
+            pow(10, -data['level'] / 20) * _kMultiplier / data['frequency']);
+  }
 }

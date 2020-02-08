@@ -2,14 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import 'models.dart';
-
 class LocationFinder {
   /// Evaluation for k-nearest neighbours regression, using Euclidean distance.
-  static double meanSquaredError(
-    Map wifiResults,
-    List<MapEntry<String, double>> data,
-  ) {
+  static double meanSquaredError(Map wifiResults, List data) {
     var sumSquaredError = 0.0;
     data.forEach((result) =>
         sumSquaredError += pow(wifiResults[result.bssid] - result.distance, 2));
