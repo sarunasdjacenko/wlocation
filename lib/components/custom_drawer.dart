@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../screens/screens.dart';
 import '../services/services.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -8,10 +9,10 @@ class CustomDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<UserInfo>(context);
     return Drawer(
-      child: ListView(
+      child: Column(
         children: <Widget>[
           DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.pinkAccent),
+            decoration: BoxDecoration(color: Theme.of(context).accentColor),
             child: Align(
               alignment: Alignment.bottomLeft,
               child: Text(
@@ -26,6 +27,19 @@ class CustomDrawer extends StatelessWidget {
             onTap: () => user != null
                 ? Auth.signOut()
                 : Auth.signInWithEmailAndPassword('email', 'password'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            onTap: () {
+              // Close Drawer.
+              Navigator.pop(context);
+              // Open Settings.
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+            },
           ),
         ],
       ),

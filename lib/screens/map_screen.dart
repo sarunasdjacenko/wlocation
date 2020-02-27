@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,19 +6,32 @@ import '../components/components.dart';
 import '../services/services.dart';
 
 class MapScreen extends StatefulWidget {
-  final String venue;
-  final String location;
+  final String venueId;
+  final String locationId;
+  final String locationName;
 
-  MapScreen({@required this.venue, @required this.location});
+  MapScreen({
+    @required this.venueId,
+    @required this.locationId,
+    @required this.locationName,
+  });
+
+  factory MapScreen.fromMap(String venueId, Map location) {
+    return MapScreen(
+      venueId: venueId,
+      locationId: location['id'],
+      locationName: location['name'],
+    );
+  }
 
   static _MarkerData of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_MarkerData>();
 
   @override
-  State<StatefulWidget> createState() => MapScreenState();
+  State<MapScreen> createState() => _MapScreenState();
 }
 
-class MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen> {
   /// The k to use in k-nearest neighbours.
   final int _kNearestNeighbours = 3;
 
@@ -33,11 +47,12 @@ class MapScreenState extends State<MapScreen> {
   void _addFingerprints() async {
     if (_markerOffsetOnImage != null) {
       final wifiResults = await WifiScanner.getWifiResults();
-      if (wifiResults != _wifiResults) {
+      if (!mapEquals(wifiResults, _wifiResults)) {
+        print(wifiResults);
         _wifiResults = wifiResults;
         Database.addFingerprints(
-          venue: widget.venue,
-          location: widget.location,
+          venue: widget.venueId,
+          location: widget.locationId,
           scanResults: _wifiResults,
           markerOffsetOnImage: _markerOffsetOnImage,
         );
@@ -48,11 +63,11 @@ class MapScreenState extends State<MapScreen> {
   Future<Map> _getFingerprints() async {
     var fingerprints;
     final wifiResults = await WifiScanner.getWifiResults();
-    if (_wifiResults != wifiResults) {
+    if (!mapEquals(wifiResults, _wifiResults)) {
       _wifiResults = wifiResults;
       fingerprints = await Database.getFingerprints(
-        venue: widget.venue,
-        location: widget.location,
+        venue: widget.venueId,
+        location: widget.locationId,
         bssids: _wifiResults.keys,
       );
     }
@@ -73,14 +88,24 @@ class MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserInfo>(context);
-    return CustomScaffold(
-      backEnabled: true,
-      scanButton: CustomFloatingActionButton(
-          onPressed: user != null ? _addFingerprints : _findUserLocation),
-      body: _MarkerData(
-        markerOffsetOnImage: _markerOffsetOnImage,
-        setMarkerOffsetOnImage: _setMarkerOffsetOnImage,
-        child: MapView(image: AssetImage('assets/BH7.jpg')),
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.locationName)),
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        child: Container(height: 34),
+      ),
+      floatingActionButton: FloatingActionButton(
+        elevation: 3.0,
+        child: const Icon(Icons.wifi, size: 35),
+        onPressed: () => user != null ? _addFingerprints() : _findUserLocation(),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: SafeArea(
+        child: _MarkerData(
+          markerOffsetOnImage: _markerOffsetOnImage,
+          setMarkerOffsetOnImage: _setMarkerOffsetOnImage,
+          child: MapView(image: AssetImage('assets/BH7.jpg')),
+        ),
       ),
     );
   }
