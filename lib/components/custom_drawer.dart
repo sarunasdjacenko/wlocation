@@ -24,9 +24,15 @@ class CustomDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: const Text('Account'),
-            onTap: () => user != null
-                ? Auth.signOut()
-                : Auth.signInWithEmailAndPassword('email', 'password'),
+            onTap: () {
+              // Close Drawer.
+              Navigator.pop(context);
+              // Open Settings.
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AccountScreen()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings),

@@ -13,20 +13,19 @@ class SettingsScreen extends StatelessWidget {
           DropdownButton(
             isExpanded: true,
             onChanged: (option) =>
-                Provider.of<ThemeBrightnessMode>(context, listen: false)
+                Provider.of<ThemeBrightness>(context, listen: false)
                     .setBrightnessMode(option),
             items: [
-              ...BrightnessModeOptions.values
-                  .map((option) => DropdownMenuItem(
-                        value: option,
-                        child: Text(option.toDisplayString()),
-                      )),
+              ...BrightnessModeOptions.values.map((option) => DropdownMenuItem(
+                    value: option,
+                    child: Text(option.toDisplayString()),
+                  )),
             ],
             underline: Container(),
             hint: ListTile(
               title: const Text('Brightness Mode'),
               subtitle: Text(
-                Provider.of<ThemeBrightnessMode>(context).toString(),
+                Provider.of<ThemeBrightness>(context).toString(),
               ),
               contentPadding: EdgeInsets.zero,
               leading: Column(

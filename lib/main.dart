@@ -7,23 +7,24 @@ import 'services/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final brightnessMode = await ThemeBrightnessMode.getStoredBrightnessMode();
+  final brightnessMode = await ThemeBrightness.getStoredBrightnessMode();
   runApp(
-    MyApp(
-      storedBrightnessMode: brightnessMode,
+    MultiProvider(
+      providers: [
+        StreamProvider<UserInfo>.value(value: Auth.currentUser),
+        ChangeNotifierProvider<ThemeBrightness>(
+          create: (context) => ThemeBrightness(brightnessMode),
+        ),
+      ],
+      child: MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final BrightnessModeOptions storedBrightnessMode;
-
-  MyApp({@required this.storedBrightnessMode});
-
   ThemeData _buildTheme(BuildContext context, {Brightness fallback}) {
     return ThemeData(
-      brightness:
-          Provider.of<ThemeBrightnessMode>(context).brightnessMode ?? fallback,
+      brightness: Provider.of<ThemeBrightness>(context).brightness ?? fallback,
       primarySwatch: Colors.pink,
       accentColor: Colors.pink,
     );
@@ -31,20 +32,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        StreamProvider<UserInfo>.value(value: Auth.currentUser),
-        ChangeNotifierProvider<ThemeBrightnessMode>(
-          create: (context) => ThemeBrightnessMode(storedBrightnessMode),
-        ),
-      ],
-      child: Builder(
-        builder: (context) => MaterialApp(
-          theme: _buildTheme(context, fallback: Brightness.light),
-          darkTheme: _buildTheme(context, fallback: Brightness.dark),
-          home: VenuesScreen(),
-        ),
-      ),
+    return MaterialApp(
+      theme: _buildTheme(context, fallback: Brightness.light),
+      darkTheme: _buildTheme(context, fallback: Brightness.dark),
+      home: VenuesScreen(),
     );
   }
 }

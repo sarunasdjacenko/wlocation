@@ -11,8 +11,13 @@ class Auth {
   static Stream<UserInfo> get currentUser => _auth.onAuthStateChanged;
 
   /// Signs the user in using Email and Password.
-  static void signInWithEmailAndPassword(String email, String password) =>
-      _auth.signInWithEmailAndPassword(email: email, password: password);
+  static Future<bool> signInWithEmailAndPassword(
+      String email, String password) {
+    return _auth
+        .signInWithEmailAndPassword(email: email, password: password)
+        .then((_) => true)
+        .catchError((_) => false);
+  }
 
   /// Signs the user in using a Custom Firebase Auth Token.
   static void signInWithCustomToken(String token) =>

@@ -11,13 +11,13 @@ extension BrightnessModeOptionsExtension on BrightnessModeOptions {
   }
 }
 
-class ThemeBrightnessMode extends ChangeNotifier {
+class ThemeBrightness extends ChangeNotifier {
   static const _key = 'brightness_mode';
   BrightnessModeOptions _option;
 
-  ThemeBrightnessMode(this._option);
+  ThemeBrightness(this._option);
 
-  Brightness get brightnessMode {
+  Brightness get brightness {
     if (_option == BrightnessModeOptions.light) return Brightness.light;
     if (_option == BrightnessModeOptions.dark) return Brightness.dark;
     return null;

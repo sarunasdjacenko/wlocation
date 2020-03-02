@@ -1,3 +1,4 @@
+export 'account_screen.dart';
 export 'locations_screen.dart';
 export 'map_screen.dart';
 export 'settings_screen.dart';

@@ -97,9 +97,11 @@ class _MapScreenState extends State<MapScreen> {
       floatingActionButton: FloatingActionButton(
         elevation: 3.0,
         child: const Icon(Icons.wifi, size: 35),
-        onPressed: () => user != null ? _addFingerprints() : _findUserLocation(),
+        onPressed: () =>
+            user != null ? _addFingerprints() : _findUserLocation(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: _MarkerData(
           markerOffsetOnImage: _markerOffsetOnImage,
