@@ -11,7 +11,10 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        StreamProvider<UserInfo>.value(value: Auth.currentUser),
+        StreamProvider<User>.value(
+          initialData: User(null),
+          value: Auth.currentUser,
+        ),
         ChangeNotifierProvider<ThemeBrightness>(
           create: (context) => ThemeBrightness(brightnessMode),
         ),

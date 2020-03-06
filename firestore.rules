@@ -1,13 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /venues/{document=**} {
-      allow read;
+    match /venues/{venue} {
+    	allow read;
       allow write: if is_admin();
+
+      match /locations/{location} {
+        allow read;
+        allow write: if is_admin();
+
+        match /fingerprints/{fingerprint} {
+          allow read;
+          allow write: if is_admin();
+        }
+      }
     }
 
     function is_admin() {
-      return exists(/databases/$(database)/documents/administrators/$(request.auth.token.email));
+      return request.auth.token.admin == true;
     }
 	}
 }

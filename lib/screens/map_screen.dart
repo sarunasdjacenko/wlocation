@@ -48,7 +48,6 @@ class _MapScreenState extends State<MapScreen> {
     if (_markerOffsetOnImage != null) {
       final wifiResults = await WifiScanner.getWifiResults();
       if (!mapEquals(wifiResults, _wifiResults)) {
-        print(wifiResults);
         _wifiResults = wifiResults;
         Database.addFingerprints(
           venue: widget.venueId,
@@ -87,7 +86,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserInfo>(context);
+    final user = Provider.of<User>(context);
     return Scaffold(
       appBar: AppBar(title: Text(widget.locationName)),
       bottomNavigationBar: BottomAppBar(
@@ -98,7 +97,7 @@ class _MapScreenState extends State<MapScreen> {
         elevation: 3.0,
         child: const Icon(Icons.wifi, size: 35),
         onPressed: () =>
-            user != null ? _addFingerprints() : _findUserLocation(),
+            user.isSignedIn ? _addFingerprints() : _findUserLocation(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       backgroundColor: Colors.white,

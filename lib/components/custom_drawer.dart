@@ -7,7 +7,7 @@ import '../services/services.dart';
 class CustomDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserInfo>(context);
+    final user = Provider.of<User>(context);
     return Drawer(
       child: Column(
         children: <Widget>[
@@ -16,7 +16,7 @@ class CustomDrawer extends StatelessWidget {
             child: Align(
               alignment: Alignment.bottomLeft,
               child: Text(
-                user?.email ?? '',
+                user.email ?? '',
                 style: const TextStyle(color: Colors.white),
               ),
             ),

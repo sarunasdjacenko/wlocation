@@ -7,11 +7,11 @@ import '../services/services.dart';
 class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserInfo>(context);
+    final user = Provider.of<User>(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Account')),
       body: SafeArea(
-        child: (user != null) ? AccountPage() : LoginPage(),
+        child: user.isSignedIn ? AccountPage() : LoginPage(),
       ),
     );
   }
@@ -22,7 +22,7 @@ class AccountPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserInfo>(context);
+    final user = Provider.of<User>(context);
     return Column(
       children: <Widget>[
         ListTile(
@@ -66,17 +66,35 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   String _email;
   String _password;
-  String _signInError;
 
-  void _signIn() {
-    setState(() => _signInError = null);
+  void _showSnackBar(String error) {
+    Scaffold.of(context).showSnackBar(
+      SnackBar(content: Text(error)),
+    );
+  }
 
-    // Attempt to sign in.
-    Auth.signInWithEmailAndPassword(_email, _password).then((success) {
-      if (!success)
-        setState(() =>
-            _signInError = 'The email or password you entered is incorrect.');
-    });
+  bool _validateEmailPassword(String email, String password) {
+    if (email == null || password == null) {
+      _showSnackBar('Enter a valid email and password.');
+      return false;
+    }
+    return true;
+  }
+
+  // Attempt to sign up.
+  void _signUp(String email, String password) {
+    if (_validateEmailPassword(email, password))
+      Auth.signUp(email, password).then((error) {
+        (error != null) ? _showSnackBar(error) : _signIn(email, password);
+      });
+  }
+
+  // Attempt to sign in.
+  void _signIn(String email, String password) {
+    if (_validateEmailPassword(email, password))
+      Auth.signIn(email, password).then((error) {
+        if (error != null) _showSnackBar(error);
+      });
   }
 
   @override
@@ -87,7 +105,6 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: <Widget>[
-          FlutterLogo(size: 100),
           const Padding(padding: EdgeInsets.only(top: 20)),
           TextField(
             autofocus: true,
@@ -119,27 +136,27 @@ class _LoginPageState extends State<LoginPage> {
             keyboardType: TextInputType.visiblePassword,
             textInputAction: TextInputAction.done,
             onChanged: (password) => _password = password,
-            onEditingComplete: _signIn,
+            onEditingComplete: () => _signIn(_email, _password),
           ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(top: 5),
-              child: Text(
-                _signInError ?? '',
-                style: TextStyle(color: Colors.red),
+          const Padding(padding: EdgeInsets.only(top: 10)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              FlatButton(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                color: Theme.of(context).canvasColor,
+                textColor: Theme.of(context).accentColor,
+                child: const Text('Create account'),
+                onPressed: () => _signUp(_email, _password),
               ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: RaisedButton(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              color: Theme.of(context).accentColor,
-              textColor: Colors.white,
-              child: const Text('Sign in'),
-              onPressed: _signIn,
-            ),
+              FlatButton(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                color: Theme.of(context).accentColor,
+                textColor: Colors.white,
+                child: const Text('Sign in'),
+                onPressed: () => _signIn(_email, _password),
+              ),
+            ],
           ),
         ],
       ),

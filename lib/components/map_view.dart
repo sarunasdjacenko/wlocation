@@ -78,7 +78,7 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserInfo>(context);
+    final user = Provider.of<User>(context);
     _setMarkerPositionOnScreen();
     return Stack(
       children: <Widget>[
@@ -87,7 +87,7 @@ class _MapViewState extends State<MapView> {
           backgroundDecoration: const BoxDecoration(color: Colors.white),
           minScale: PhotoViewComputedScale.covered,
           controller: _viewController,
-          onTapUp: (context, details, _) => user != null
+          onTapUp: (context, details, _) => user.isAdmin
               ? _setMarkerOffsetOnImage(details.localPosition)
               : null,
         ),
