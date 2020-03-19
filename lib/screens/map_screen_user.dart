@@ -1,10 +1,8 @@
 import 'package:async/async.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../components/components.dart';
-import '../services/services.dart';
 import 'map_screen.dart';
 
 class UserMapScreen extends BaseMapScreen {
@@ -16,9 +14,6 @@ class UserMapScreen extends BaseMapScreen {
 }
 
 class _UserMapScreenState extends BaseMapScreenState {
-  /// The k to use in k-nearest neighbours.
-  static const _kNearestNeighbours = 3;
-
   RestartableTimer _scanTimer;
 
   @override
@@ -36,32 +31,11 @@ class _UserMapScreenState extends BaseMapScreenState {
     super.dispose();
   }
 
-  Future<Map> _getFingerprints() async {
-    var fingerprints;
-    final newWifiResults = await WifiScanner.getWifiResults();
-    if (!mapEquals(wifiResults, newWifiResults)) {
-      wifiResults = newWifiResults;
-      fingerprints = await Database.getFingerprints(
-        venueId: widget.venueId,
-        locationId: widget.locationId,
-        bssids: wifiResults.keys,
-      );
-    }
-    return fingerprints;
-  }
-
   void _updateUserLocation() async {
     _scanTimer.reset();
-    final fingerprints = await _getFingerprints();
-    final dataset = fingerprints?.map((position, data) => MapEntry(
-        position, MachineLearning.meanSquaredError(wifiResults, data)));
-    if (dataset != null) {
-      final bestLocationMatch = MachineLearning.wknnRegression(
-        dataset: dataset,
-        kNeighbours: _kNearestNeighbours,
-      );
-      if (_scanTimer.isActive) setMarkerOffsetOnImage(bestLocationMatch);
-    }
+    final bestLocationMatch = await findUserGeolocation();
+    final offsetOnImage = await geoOffsetToOffsetOnImage(bestLocationMatch);
+    if (_scanTimer.isActive) setMarkerOffsetOnImage(offsetOnImage);
   }
 
   @override

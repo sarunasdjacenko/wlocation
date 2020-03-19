@@ -15,8 +15,41 @@ class AdminMapScreen extends BaseMapScreen {
 }
 
 class _AdminMapScreenState extends BaseMapScreenState {
+  bool _errorCalculationEnabled = false;
+
   bool _calibrationEnabled = false;
   final List<Map> _calibrationList = [];
+
+  void _toggleErrorCalculation(BuildContext context) {
+    if (_calibrationEnabled) _toggleCalibration(context);
+    setState(() => _errorCalculationEnabled = !_errorCalculationEnabled);
+    showSnackBar(
+      context,
+      _errorCalculationEnabled
+          ? 'Error calculation enabled. Select your location.'
+          : 'Error calculation disabled.',
+    );
+  }
+
+  void _calculateError(BuildContext context) async {
+    final marker = markerOffsetOnImage;
+    if (marker == null)
+      showSnackBar(context, 'Select Your Location');
+    else {
+      final markedLocation = await offsetOnImageToGeoOffset(marker);
+      final bestLocationMatch = await findUserGeolocation();
+      if (bestLocationMatch == null)
+        showSnackBar(context, 'Failed to get location. Try again later.');
+      else {
+        final errorDistance =
+            MathFunctions.haversineDistance(markedLocation, bestLocationMatch);
+        showSnackBar(
+          context,
+          'The error is approximately ${errorDistance.toStringAsFixed(2)} metres.',
+        );
+      }
+    }
+  }
 
   void _toggleCalibration(BuildContext context, {bool isComplete = false}) {
     _calibrationList.clear();
@@ -24,10 +57,10 @@ class _AdminMapScreenState extends BaseMapScreenState {
     showSnackBar(
       context,
       isComplete
-          ? 'Calibration Complete'
+          ? 'Calibration complete.'
           : _calibrationEnabled
-              ? 'Calibration Enabled. Add 3 Calibration Points.'
-              : 'Calibration Disabled',
+              ? 'Calibration enabled. Add 3 calibration points.'
+              : 'Calibration disabled.',
     );
   }
 
@@ -38,10 +71,10 @@ class _AdminMapScreenState extends BaseMapScreenState {
     else {
       final geopoint = await WifiScanner.getCurrentLocation();
       if (geopoint == null)
-        showSnackBar(context, 'Please Try Again');
+        showSnackBar(context, 'Failed to get location. Try again later.');
       else {
         _calibrationList.add({'marker': marker, 'geopoint': geopoint});
-        showSnackBar(context, 'Calibration Point Added');
+        showSnackBar(context, 'Calibration point added.');
         setState(() {});
       }
     }
@@ -53,30 +86,15 @@ class _AdminMapScreenState extends BaseMapScreenState {
       longitudes.add(Offset(entry['marker'].dx, entry['geopoint'].longitude));
       latitudes.add(Offset(entry['marker'].dy, entry['geopoint'].latitude));
     });
-    final lineLongitude = MachineLearning.lineOfBestFit(longitudes);
-    final lineLatitude = MachineLearning.lineOfBestFit(latitudes);
+    final lineLongitude = MathFunctions.lineOfBestFit(longitudes);
+    final lineLatitude = MathFunctions.lineOfBestFit(latitudes);
     final line = {'latitude': lineLatitude, 'longitude': lineLongitude};
-    Database.setCalibration(
+    Database.setMapCalibration(
       venueId: widget.venueId,
       locationId: widget.locationId,
       lineOfBestFit: line,
     );
     _toggleCalibration(context, isComplete: true);
-  }
-
-  void _addFingerprints() async {
-    if (markerOffsetOnImage != null) {
-      final newWifiResults = await WifiScanner.getWifiResults();
-      if (!mapEquals(wifiResults, newWifiResults)) {
-        wifiResults = newWifiResults;
-        Database.addFingerprints(
-          venueId: widget.venueId,
-          locationId: widget.locationId,
-          scanResults: wifiResults,
-          markerOffsetOnImage: markerOffsetOnImage,
-        );
-      }
-    }
   }
 
   void _uploadMapImage() async {
@@ -95,21 +113,53 @@ class _AdminMapScreenState extends BaseMapScreenState {
     );
   }
 
+  void _addFingerprints(BuildContext context) async {
+    final marker = markerOffsetOnImage;
+    if (marker == null)
+      showSnackBar(context, 'Select your location.');
+    else {
+      final geoOffset = await offsetOnImageToGeoOffset(marker);
+      if (geoOffset == null)
+        showSnackBar(context, 'Calibrate the geolocation.');
+      else {
+        final newWifiResults = await WifiScanner.getWifiResults();
+        if (mapEquals(wifiResults, newWifiResults))
+          showSnackBar(context, 'Failed to scan Wi-Fi. Try again later.');
+        else {
+          wifiResults = newWifiResults;
+          Database.addFingerprints(
+            venueId: widget.venueId,
+            locationId: widget.locationId,
+            scanResults: wifiResults,
+            geoOffset: geoOffset,
+          );
+          showSnackBar(context, 'Added fingerprints.');
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.locationName),
         actions: <Widget>[
-          IconButton(
-            tooltip: 'Calculate Error',
-            icon: Icon(Icons.error_outline),
-            onPressed: () => print('error'),
+          Builder(
+            builder: (context) => IconButton(
+              tooltip: 'Calculate Error',
+              icon: Icon(
+                _errorCalculationEnabled ? Icons.error : Icons.error_outline,
+              ),
+              onPressed: () => _toggleErrorCalculation(context),
+            ),
           ),
           Builder(
             builder: (context) => IconButton(
-              tooltip: 'Calibrate GeoLocation',
-              icon: Icon(Icons.gps_fixed),
+              tooltip: 'Calibrate Geolocation',
+              icon: Icon(
+                _calibrationEnabled ? Icons.gps_fixed : Icons.gps_off,
+              ),
               onPressed: () => _toggleCalibration(context),
             ),
           ),
@@ -125,32 +175,30 @@ class _AdminMapScreenState extends BaseMapScreenState {
         child: Container(height: 34),
       ),
       floatingActionButton: Builder(
-        builder: (context) => FloatingActionButton(
+        builder: (context) {
+          var icon, onPressed;
+          if (_errorCalculationEnabled) {
+            icon = Icons.error_outline;
+            onPressed = () => _calculateError(context);
+          } else if (_calibrationEnabled) {
+            if (_calibrationList.length < 3) {
+              icon = Icons.add;
+              onPressed = () => _addCalibrationPoint(context);
+            } else {
+              icon = Icons.done;
+              onPressed = () => _calibrateGeolocation(context);
+            }
+          } else {
+            icon = Icons.wifi;
+            onPressed = () => _addFingerprints(context);
+          }
+
+          return FloatingActionButton(
             elevation: 3.0,
-            // child: Icon(Icons.wifi, size: 35),
-            child: Icon(
-              (_calibrationEnabled)
-                  ? (_calibrationList.length < 3) ? Icons.add : Icons.done
-                  : Icons.wifi,
-              size: 35,
-            ),
-            onPressed: () {
-              // if (_calibrationEnabled) {
-              //   if (_calibrationList.length < 3) {
-              //     _addCalibrationPoint();
-              //   } else {
-              //     _calibrateGeolocation(context);
-              //     _toggleCalibration(context);
-              //   }
-              // } else {
-              //   _addFingerprints();
-              // }
-              (_calibrationEnabled)
-                  ? (_calibrationList.length < 3)
-                      ? _addCalibrationPoint(context)
-                      : _calibrateGeolocation(context)
-                  : _addFingerprints();
-            }),
+            child: Icon(icon, size: 35),
+            onPressed: onPressed,
+          );
+        },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: SafeArea(

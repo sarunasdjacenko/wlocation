@@ -38,6 +38,9 @@ abstract class BaseMapScreen extends StatefulWidget {
 }
 
 abstract class BaseMapScreenState extends State<BaseMapScreen> {
+  /// The k to use in k-nearest neighbours.
+  static const _kNearestNeighbours = 3;
+
   // URL of the map image.
   Future<String> mapImageUrl;
 
@@ -49,6 +52,74 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
 
   void setMarkerOffsetOnImage(Offset newMarkerOffsetOnImage) =>
       setState(() => markerOffsetOnImage = newMarkerOffsetOnImage);
+
+  Future<Map> _getFingerprints() async {
+    var fingerprints;
+    final newWifiResults = await WifiScanner.getWifiResults();
+    if (!mapEquals(wifiResults, newWifiResults)) {
+      wifiResults = newWifiResults;
+      fingerprints = await Database.getFingerprints(
+        venueId: widget.venueId,
+        locationId: widget.locationId,
+        bssids: wifiResults.keys,
+      );
+    }
+    return fingerprints;
+  }
+
+  Future<Offset> findUserGeolocation() async {
+    var bestLocationMatch;
+    final fingerprints = await _getFingerprints();
+    final dataset = fingerprints?.map((position, data) => MapEntry(
+        position, MachineLearning.meanSquaredError(wifiResults, data)));
+    if (dataset != null) {
+      bestLocationMatch = MachineLearning.wknnRegression(
+        dataset: dataset,
+        kNeighbours: _kNearestNeighbours,
+      );
+    }
+    return bestLocationMatch;
+  }
+
+  Future<Offset> offsetOnImageToGeoOffset(Offset offset) async {
+    double calculate(double coordinate, Map equation) {
+      final gradient = equation['gradient'];
+      final intercept = equation['intercept'];
+      return coordinate * gradient + intercept;
+    }
+
+    var geoOffset;
+    final calibration = await Database.getMapCalibration(
+      venueId: widget.venueId,
+      locationId: widget.locationId,
+    );
+    if (calibration != null) {
+      final longitude = calculate(offset.dx, calibration['longitude']);
+      final latitude = calculate(offset.dy, calibration['latitude']);
+      geoOffset = Offset(longitude, latitude);
+    }
+    return geoOffset;
+  }
+
+  Future<Offset> geoOffsetToOffsetOnImage(Offset geopoint) async {
+    double calculate(double coordinate, Map equation) {
+      final gradient = equation['gradient'];
+      final intercept = equation['intercept'];
+      return (coordinate - intercept) / gradient;
+    }
+
+    var offsetOnImage;
+    final calibration = await Database.getMapCalibration(
+      venueId: widget.venueId,
+      locationId: widget.locationId,
+    );
+    if (calibration != null) {
+      final x = calculate(geopoint.dx, calibration['longitude']);
+      final y = calculate(geopoint.dy, calibration['latitude']);
+      offsetOnImage = Offset(x, y);
+    }
+    return offsetOnImage;
+  }
 
   @override
   void initState() {

@@ -72,10 +72,6 @@ class Database {
     String locationId,
     Iterable bssids,
   }) async {
-    final location =
-        await _FirebaseReferences.locations(venueId).document(locationId).get();
-    final calibration = location.data['calibration'];
-
     final fingerprintsRef =
         _FirebaseReferences.fingerprints(venueId, locationId);
     // Split BSSIDs into groups of upto 10, to reduce the number of queries.
@@ -92,37 +88,14 @@ class Database {
       (querySnapshot) => querySnapshot.documents.forEach((documentSnapshot) {
         final bssid = documentSnapshot.data['bssid'];
         documentSnapshot.data['dataset'].forEach((data) {
-          final position = _calculatePosition(data['geopoint'], calibration);
+          final geopoint = data['geopoint'];
+          final geoOffset = Offset(geopoint.longitude, geopoint.latitude);
           final scanData = ScanData(bssid, data['distance']);
-          (fingerprints[position] ??= []).add(scanData);
+          (fingerprints[geoOffset] ??= []).add(scanData);
         });
       }),
     );
     return fingerprints;
-  }
-
-  static Offset _calculatePosition(GeoPoint geopoint, Map calibration) {
-    double calculatePoint(double coordinate, Map equation) {
-      final gradient = equation['gradient'];
-      final intercept = equation['intercept'];
-      return (coordinate - intercept) / gradient;
-    }
-
-    final x = calculatePoint(geopoint.longitude, calibration['longitude']);
-    final y = calculatePoint(geopoint.latitude, calibration['latitude']);
-    return Offset(x, y);
-  }
-
-  static GeoPoint _calculateGeoPoint(Offset position, Map calibration) {
-    double calculatePoint(double coordinate, Map equation) {
-      final gradient = equation['gradient'];
-      final intercept = equation['intercept'];
-      return coordinate * gradient + intercept;
-    }
-
-    final longitude = calculatePoint(position.dx, calibration['longitude']);
-    final latitude = calculatePoint(position.dy, calibration['latitude']);
-    return GeoPoint(latitude, longitude);
   }
 
   /// Add the fingerprints for each scan result
@@ -130,14 +103,11 @@ class Database {
     String venueId,
     String locationId,
     Map scanResults,
-    Offset markerOffsetOnImage,
+    Offset geoOffset,
   }) {
-    _FirebaseReferences.locations(venueId).document(locationId).get().then(
-      (location) {
-        final geopoint = _calculateGeoPoint(
-          markerOffsetOnImage,
-          location.data['calibration'],
-        );
+    getMapCalibration(venueId: venueId, locationId: locationId).then(
+      (calibration) {
+        final geopoint = GeoPoint(geoOffset.dy, geoOffset.dx);
         final fingerprintsRef =
             _FirebaseReferences.fingerprints(venueId, locationId);
         scanResults.forEach((bssid, distance) {
@@ -159,8 +129,17 @@ class Database {
     );
   }
 
+  static Future<Map> getMapCalibration({
+    String venueId,
+    String locationId,
+  }) async {
+    final location =
+        await _FirebaseReferences.locations(venueId).document(locationId).get();
+    return location.data['calibration'];
+  }
+
   /// Sets the calibration scale, used to convert pixels to geolocation.
-  static void setCalibration({
+  static void setMapCalibration({
     String venueId,
     String locationId,
     Map lineOfBestFit,
@@ -169,4 +148,28 @@ class Database {
         .document(locationId)
         .updateData({'calibration': lineOfBestFit});
   }
+
+  // static GeoPoint _calculateGeoPoint(Offset position, Map calibration) {
+  //   double calculatePoint(double coordinate, Map equation) {
+  //     final gradient = equation['gradient'];
+  //     final intercept = equation['intercept'];
+  //     return coordinate * gradient + intercept;
+  //   }
+
+  //   final longitude = calculatePoint(position.dx, calibration['longitude']);
+  //   final latitude = calculatePoint(position.dy, calibration['latitude']);
+  //   return GeoPoint(latitude, longitude);
+  // }
+
+  // static Offset _calculatePosition(GeoPoint geopoint, Map calibration) {
+  //   double calculatePoint(double coordinate, Map equation) {
+  //     final gradient = equation['gradient'];
+  //     final intercept = equation['intercept'];
+  //     return (coordinate - intercept) / gradient;
+  //   }
+
+  //   final x = calculatePoint(geopoint.longitude, calibration['longitude']);
+  //   final y = calculatePoint(geopoint.latitude, calibration['latitude']);
+  //   return Offset(x, y);
+  // }
 }
