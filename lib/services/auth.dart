@@ -40,8 +40,6 @@ class User {
   final String email;
   final bool isAdmin;
 
-  bool get isSignedIn => email != null;
-
   User._(this.email, this.isAdmin);
 
   factory User(Map claims) {

@@ -2,13 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-extension ExtendedOffset on Offset {
-  /// Creates an [Offset] object from a [Map], using keys 'x' and 'y'.
-  static Offset fromMap(Map data) {
-    return Offset(data['x'], data['y']);
-  }
-}
-
 class PositionData implements MapEntry<Offset, double> {
   final Offset key;
   final double value;

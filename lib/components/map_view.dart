@@ -6,10 +6,10 @@ import '../screens/screens.dart';
 import '../services/services.dart';
 
 class MapView extends StatefulWidget {
-  MapView({@required this.image});
+  /// Image Provider used as the map.
+  final NetworkImage image;
 
-  /// Image used as the map.
-  final AssetImage image;
+  MapView({@required this.image});
 
   @override
   State<StatefulWidget> createState() => _MapViewState();
@@ -47,7 +47,7 @@ class _MapViewState extends State<MapView> {
   void _setMarkerPositionOnScreen() {
     var positionOnScreen;
     final offsetOnImage = MapScreen.of(context).markerOffsetOnImage;
-    if (offsetOnImage != null) {
+    if (offsetOnImage != null && _viewScale != null && _viewOffset != null) {
       final viewSize = context.findRenderObject().paintBounds.size;
       final offsetOnScreen = (offsetOnImage * _viewScale) + _viewOffset;
       positionOnScreen =
@@ -58,9 +58,10 @@ class _MapViewState extends State<MapView> {
 
   /// Listener for image panning and scaling.
   void _viewControllerListener(PhotoViewControllerValue value) {
-    _viewOffset = value.position;
-    _viewScale = value.scale;
-    setState(() {});
+    setState(() {
+      _viewOffset = value.position;
+      _viewScale = value.scale;
+    });
   }
 
   @override
@@ -78,16 +79,18 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<User>(context);
     _setMarkerPositionOnScreen();
+    final user = Provider.of<User>(context);
     return Stack(
       children: <Widget>[
         PhotoView(
-          imageProvider: widget.image,
-          backgroundDecoration: const BoxDecoration(color: Colors.white),
-          minScale: PhotoViewComputedScale.covered,
           controller: _viewController,
-          onTapUp: (context, details, _) => user.isAdmin
+          minScale: PhotoViewComputedScale.covered,
+          backgroundDecoration: BoxDecoration(
+            color: Theme.of(context).canvasColor,
+          ),
+          imageProvider: widget.image,
+          onTapUp: (context, details, value) => user.isAdmin
               ? _setMarkerOffsetOnImage(details.localPosition)
               : null,
         ),

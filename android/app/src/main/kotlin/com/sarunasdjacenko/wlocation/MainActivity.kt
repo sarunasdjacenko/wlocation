@@ -11,7 +11,7 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-  private val CHANNEL = "sarunasdjacenko.com/wifi_scan"
+  private val CHANNEL = "sarunasdjacenko.com/wlocation"
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)

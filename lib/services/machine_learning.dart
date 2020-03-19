@@ -2,7 +2,24 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-class LocationFinder {
+class MachineLearning {
+  /// Finds the line of best fit, using the method of least squares.
+  static Map<String, double> lineOfBestFit(List<Offset> data) {
+    final means =
+        data.reduce((sum, pair) => sum + pair) / data.length.toDouble();
+
+    // Calculates Sxx and Sxy.
+    final sumOfDifferences = data.fold(Offset.zero, (sum, pair) {
+      final x = pair.dx - means.dx;
+      final y = pair.dy - means.dy;
+      return sum + Offset(pow(x, 2), x * y);
+    });
+
+    final gradient = sumOfDifferences.dy / sumOfDifferences.dx;
+    final intercept = means.dy - gradient * means.dx;
+    return {'gradient': gradient, 'intercept': intercept};
+  }
+
   /// Evaluation for k-nearest neighbours regression, using Euclidean distance.
   static double meanSquaredError(Map wifiResults, List data) {
     var sumSquaredError = 0.0;

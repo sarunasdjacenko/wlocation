@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../services/services.dart';
+import '../components/components.dart';
 
 class AccountScreen extends StatelessWidget {
   @override
@@ -11,7 +12,7 @@ class AccountScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Account')),
       body: SafeArea(
-        child: user.isSignedIn ? AccountPage() : LoginPage(),
+        child: user.isAdmin ? AccountPage() : LoginPage(),
       ),
     );
   }
@@ -66,16 +67,14 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   String _email;
   String _password;
+  bool _showLoading = false;
 
-  void _showSnackBar(String error) {
-    Scaffold.of(context).showSnackBar(
-      SnackBar(content: Text(error)),
-    );
-  }
+  void _showLoadingScreen(bool loading) =>
+      setState(() => _showLoading = loading);
 
   bool _validateEmailPassword(String email, String password) {
     if (email == null || password == null) {
-      _showSnackBar('Enter a valid email and password.');
+      showSnackBar(context, 'Enter a valid email and password.');
       return false;
     }
     return true;
@@ -83,18 +82,29 @@ class _LoginPageState extends State<LoginPage> {
 
   // Attempt to sign up.
   void _signUp(String email, String password) {
-    if (_validateEmailPassword(email, password))
+    if (_validateEmailPassword(email, password)) {
+      _showLoadingScreen(true);
       Auth.signUp(email, password).then((error) {
-        (error != null) ? _showSnackBar(error) : _signIn(email, password);
+        if (error != null) {
+          _showLoadingScreen(false);
+          showSnackBar(context, error);
+        } else
+          _signIn(email, password);
       });
+    }
   }
 
   // Attempt to sign in.
   void _signIn(String email, String password) {
-    if (_validateEmailPassword(email, password))
+    if (_validateEmailPassword(email, password)) {
+      _showLoadingScreen(true);
       Auth.signIn(email, password).then((error) {
-        if (error != null) _showSnackBar(error);
+        if (error != null) {
+          _showLoadingScreen(false);
+          showSnackBar(context, error);
+        }
       });
+    }
   }
 
   @override
@@ -103,63 +113,65 @@ class _LoginPageState extends State<LoginPage> {
     final passwordFocusNode = FocusNode();
     return Padding(
       padding: const EdgeInsets.all(20),
-      child: Column(
-        children: <Widget>[
-          const Padding(padding: EdgeInsets.only(top: 20)),
-          TextField(
-            autofocus: true,
-            focusNode: emailFocusNode,
-            autocorrect: false,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              border: OutlineInputBorder(),
+      child: (_showLoading)
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              children: <Widget>[
+                const Padding(padding: EdgeInsets.only(top: 20)),
+                TextField(
+                  controller: TextEditingController(text: _email),
+                  focusNode: emailFocusNode,
+                  autocorrect: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                  ),
+                  cursorWidth: 1,
+                  cursorColor: Theme.of(context).textTheme.bodyText2.color,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (email) => _email = email,
+                  onEditingComplete: () =>
+                      FocusScope.of(context).requestFocus(passwordFocusNode),
+                ),
+                const Padding(padding: EdgeInsets.only(top: 10)),
+                TextField(
+                  focusNode: passwordFocusNode,
+                  obscureText: true,
+                  autocorrect: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
+                  cursorWidth: 1,
+                  cursorColor: Theme.of(context).textTheme.bodyText2.color,
+                  keyboardType: TextInputType.visiblePassword,
+                  textInputAction: TextInputAction.done,
+                  onChanged: (password) => _password = password,
+                  onEditingComplete: () => _signIn(_email, _password),
+                ),
+                const Padding(padding: EdgeInsets.only(top: 10)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    FlatButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      color: Theme.of(context).canvasColor,
+                      textColor: Theme.of(context).accentColor,
+                      child: const Text('Create account'),
+                      onPressed: () => _signUp(_email, _password),
+                    ),
+                    FlatButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      color: Theme.of(context).accentColor,
+                      textColor: Colors.white,
+                      child: const Text('Sign in'),
+                      onPressed: () => _signIn(_email, _password),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            cursorWidth: 1,
-            cursorColor: Theme.of(context).textTheme.bodyText2.color,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            onChanged: (email) => _email = email,
-            onEditingComplete: () =>
-                FocusScope.of(context).requestFocus(passwordFocusNode),
-          ),
-          const Padding(padding: EdgeInsets.only(top: 10)),
-          TextField(
-            focusNode: passwordFocusNode,
-            obscureText: true,
-            autocorrect: false,
-            decoration: const InputDecoration(
-              labelText: 'Password',
-              border: OutlineInputBorder(),
-            ),
-            cursorWidth: 1,
-            cursorColor: Theme.of(context).textTheme.bodyText2.color,
-            keyboardType: TextInputType.visiblePassword,
-            textInputAction: TextInputAction.done,
-            onChanged: (password) => _password = password,
-            onEditingComplete: () => _signIn(_email, _password),
-          ),
-          const Padding(padding: EdgeInsets.only(top: 10)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              FlatButton(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                color: Theme.of(context).canvasColor,
-                textColor: Theme.of(context).accentColor,
-                child: const Text('Create account'),
-                onPressed: () => _signUp(_email, _password),
-              ),
-              FlatButton(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                color: Theme.of(context).accentColor,
-                textColor: Colors.white,
-                child: const Text('Sign in'),
-                onPressed: () => _signIn(_email, _password),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

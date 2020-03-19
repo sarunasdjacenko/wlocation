@@ -8,6 +8,7 @@ import 'services/services.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final brightnessMode = await ThemeBrightness.getStoredBrightnessMode();
+  final scanFrequency = await ScanFrequency.getStoredScanFrequency();
   runApp(
     MultiProvider(
       providers: [
@@ -17,6 +18,9 @@ void main() async {
         ),
         ChangeNotifierProvider<ThemeBrightness>(
           create: (context) => ThemeBrightness(brightnessMode),
+        ),
+        ChangeNotifierProvider<ScanFrequency>(
+          create: (context) => ScanFrequency(scanFrequency),
         ),
       ],
       child: MyApp(),
@@ -30,6 +34,7 @@ class MyApp extends StatelessWidget {
       brightness: Provider.of<ThemeBrightness>(context).brightness ?? fallback,
       primarySwatch: Colors.pink,
       accentColor: Colors.pink,
+      textSelectionHandleColor: Colors.pinkAccent,
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../components/components.dart';
 import '../services/services.dart';
@@ -11,53 +12,78 @@ class VenuesScreen extends StatefulWidget {
 }
 
 class _VenuesScreenState extends State<VenuesScreen> {
-  List<Map> _venues = [];
-
-  void _getVenues() => Database.getVenues()
-      .then((venuesList) => setState(() => _venues = venuesList));
-
-  @override
-  void initState() {
-    super.initState();
-    _getVenues();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<User>(context);
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(
+          actions: <Widget>[
+            if (user.isAdmin)
+              IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () => showDialog(
+                  context: context,
+                  child: TextFieldDialog(
+                    titleText: 'Add a venue',
+                    labelText: 'Venue',
+                    onSubmit: (venueName) => Database.addVenue(venueName),
+                  ),
+                ),
+              ),
+          ],
+        ),
         drawer: CustomDrawer(),
         body: SafeArea(
-          child: ListView.separated(
-            itemCount: _venues.length,
-            padding: const EdgeInsets.all(10),
-            itemBuilder: (BuildContext context, int index) {
-              final venue = _venues[index];
-              return OpenContainer(
-                closedColor: Theme.of(context).cardColor,
-                closedBuilder: (context, action) => Column(
-                  children: <Widget>[
-                    ListTile(
-                      contentPadding: const EdgeInsets.all(15),
-                      title: Text(
-                        venue['name'],
-                        style: const TextStyle(fontSize: 40),
-                      ),
+          child: StreamBuilder<QuerySnapshot>(
+            stream: Database.venues(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData)
+                return Center(child: CircularProgressIndicator());
+
+              final venues = snapshot.data.documents;
+              return ListView.separated(
+                padding: const EdgeInsets.all(10),
+                itemCount: venues.length,
+                itemBuilder: (context, index) {
+                  final venue = venues[index];
+                  return OpenContainer(
+                    closedShape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  ],
+                    closedColor: Theme.of(context).cardColor,
+                    closedBuilder: (context, action) => _VenueCard(
+                      venueName: venue.data['name'],
+                    ),
+                    openBuilder: (context, action) => LocationsScreen(
+                      venueId: venue.documentID,
+                      venueName: venue.data['name'],
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) => const Padding(
+                  padding: EdgeInsets.only(top: 10),
                 ),
-                openBuilder: (context, action) =>
-                    LocationsScreen.fromMap(venue),
               );
             },
-            separatorBuilder: (context, index) => Padding(
-              padding: const EdgeInsets.only(top: 10),
-            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _VenueCard extends StatelessWidget {
+  final String venueName;
+
+  _VenueCard({@required this.venueName});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.all(15),
+      title: Text(venueName, style: const TextStyle(fontSize: 34)),
     );
   }
 }
