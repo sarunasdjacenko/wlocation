@@ -19,9 +19,6 @@ class _MapViewState extends State<MapView> {
   /// Size of icon used to show the location of the user
   static const _iconSize = 40.0;
 
-  /// Position of location marker on the device.
-  Offset _positionOnScreen;
-
   /// Controller for [PhotoView].
   PhotoViewController _viewController;
 
@@ -32,28 +29,26 @@ class _MapViewState extends State<MapView> {
   double _viewScale;
 
   /// Set the offset on the image which corresponds to the screen tap position.
-  void _setMarkerOffsetOnImage(Offset positionOnScreen) {
-    var offsetOnImage;
-    if (positionOnScreen != null) {
+  void _setMarkerOffsetOnImage(Offset screenPosition) {
+    var imageOffset;
+    if (screenPosition != null && _viewScale != null && _viewOffset != null) {
       final viewSize = context.findRenderObject().paintBounds.size;
-      final offsetOnScreen =
-          positionOnScreen.translate(-viewSize.width / 2, -viewSize.height / 2);
-      offsetOnImage = (offsetOnScreen - _viewOffset) / _viewScale;
+      final screenOffset =
+          screenPosition.translate(-viewSize.width / 2, -viewSize.height / 2);
+      imageOffset = (screenOffset - _viewOffset) / _viewScale;
     }
-    MapScreen.of(context).setMarkerOffsetOnImage(offsetOnImage);
+    MapScreen.of(context).setMarkerOffset(imageOffset);
   }
 
-  /// Set the position marker on the screen, when the image is scaled/panned.
-  void _setMarkerPositionOnScreen() {
-    var positionOnScreen;
-    final offsetOnImage = MapScreen.of(context).markerOffsetOnImage;
-    if (offsetOnImage != null && _viewScale != null && _viewOffset != null) {
+  Offset _imageOffsetToScreenPos(Offset imageOffset) {
+    var screenPosition;
+    if (imageOffset != null && _viewScale != null && _viewOffset != null) {
       final viewSize = context.findRenderObject().paintBounds.size;
-      final offsetOnScreen = (offsetOnImage * _viewScale) + _viewOffset;
-      positionOnScreen =
-          offsetOnScreen.translate(viewSize.width / 2, viewSize.height / 2);
+      final screenOffset = (imageOffset * _viewScale) + _viewOffset;
+      screenPosition =
+          screenOffset.translate(viewSize.width / 2, viewSize.height / 2);
     }
-    _positionOnScreen = positionOnScreen;
+    return screenPosition;
   }
 
   /// Listener for image panning and scaling.
@@ -79,7 +74,11 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-    _setMarkerPositionOnScreen();
+    final chosenMarkerPosition =
+        _imageOffsetToScreenPos(MapScreen.of(context).chosenMarkerOffset);
+    final predictedMarkerPosition =
+        _imageOffsetToScreenPos(MapScreen.of(context).predictedMarkerOffset);
+    print('TEST: $chosenMarkerPosition, $predictedMarkerPosition');
     final user = Provider.of<User>(context);
     return Stack(
       children: <Widget>[
@@ -94,15 +93,25 @@ class _MapViewState extends State<MapView> {
               ? _setMarkerOffsetOnImage(details.localPosition)
               : null,
         ),
-        if (_positionOnScreen != null)
+        if (chosenMarkerPosition != null)
+          Positioned(
+            child: const Icon(
+              Icons.location_on,
+              color: Colors.blueAccent,
+              size: _iconSize,
+            ),
+            left: chosenMarkerPosition.dx - _iconSize / 2,
+            top: chosenMarkerPosition.dy - _iconSize,
+          ),
+        if (predictedMarkerPosition != null)
           Positioned(
             child: const Icon(
               Icons.location_on,
               color: Colors.red,
               size: _iconSize,
             ),
-            left: _positionOnScreen.dx - _iconSize / 2,
-            top: _positionOnScreen.dy - _iconSize,
+            left: predictedMarkerPosition.dx - _iconSize / 2,
+            top: predictedMarkerPosition.dy - _iconSize,
           ),
       ],
     );

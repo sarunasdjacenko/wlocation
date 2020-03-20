@@ -29,8 +29,8 @@ dependencies:
   # The following adds Shared Preferences.
   shared_preferences: ^0.5.6+2
 
-  # The following adds Location, to ask for permissions and service.
-  location: ^2.5.3
+  # The following adds Location.
+  location: ^2.5.4
 
   # The following adds Cloud Firestore.
   cloud_firestore: ^0.13.4
@@ -39,7 +39,7 @@ dependencies:
   cloud_functions: ^0.4.2+2
 
   # The following adds Firebase Auth.
-  firebase_auth: ^0.15.4
+  firebase_auth: ^0.15.5+3
 
   # The following adds Firebase Storage.
   firebase_storage: ^3.1.3

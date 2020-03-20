@@ -47,11 +47,14 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
   /// [Map] of (bssid => distance) for each access point scanned.
   Map wifiResults = {};
 
-  /// [Offset] of the marker on the image.
-  Offset markerOffsetOnImage;
+  /// [Offset] of a marker on the image, chosen by the user.
+  Offset chosenMarkerOffset;
 
-  void setMarkerOffsetOnImage(Offset newMarkerOffsetOnImage) =>
-      setState(() => markerOffsetOnImage = newMarkerOffsetOnImage);
+  /// [Offset] of a marker on the image, predicted with Machine Learning.
+  Offset predictedMarkerOffset;
+
+  /// Abstract method used to set a marker offset. Activated on tap.
+  void setMarkerOffset(Offset newMarkerOffset);
 
   Future<Map> _getFingerprints() async {
     var fingerprints;
@@ -81,7 +84,7 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
     return bestLocationMatch;
   }
 
-  Future<Offset> offsetOnImageToGeoOffset(Offset offset) async {
+  Future<Offset> imageOffsetToGeoOffset(Offset offset) async {
     double calculate(double coordinate, Map equation) {
       final gradient = equation['gradient'];
       final intercept = equation['intercept'];
@@ -101,14 +104,14 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
     return geoOffset;
   }
 
-  Future<Offset> geoOffsetToOffsetOnImage(Offset geopoint) async {
+  Future<Offset> geoOffsetToImageOffset(Offset geopoint) async {
     double calculate(double coordinate, Map equation) {
       final gradient = equation['gradient'];
       final intercept = equation['intercept'];
       return (coordinate - intercept) / gradient;
     }
 
-    var offsetOnImage;
+    var imageOffset;
     final calibration = await Database.getMapCalibration(
       venueId: widget.venueId,
       locationId: widget.locationId,
@@ -116,9 +119,9 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
     if (calibration != null) {
       final x = calculate(geopoint.dx, calibration['longitude']);
       final y = calculate(geopoint.dy, calibration['latitude']);
-      offsetOnImage = Offset(x, y);
+      imageOffset = Offset(x, y);
     }
-    return offsetOnImage;
+    return imageOffset;
   }
 
   @override
@@ -132,17 +135,24 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
 }
 
 class MapMarkerData extends InheritedWidget {
-  /// [Offset] of the marker on the image.
-  final Offset markerOffsetOnImage;
-  final ValueChanged<Offset> setMarkerOffsetOnImage;
+  /// [Offset] of a marker on the image, chosen by the admin.
+  final Offset chosenMarkerOffset;
+
+  /// [Offset] of a marker on the image, predicted with Machine Learning.
+  final Offset predictedMarkerOffset;
+
+  /// Callback used to set [chosenMarkerOffset] or [predictedMarkerOffset].
+  final ValueChanged<Offset> setMarkerOffset;
 
   MapMarkerData({
     @required Widget child,
-    @required this.markerOffsetOnImage,
-    this.setMarkerOffsetOnImage,
+    @required this.predictedMarkerOffset,
+    this.chosenMarkerOffset,
+    this.setMarkerOffset,
   }) : super(child: child);
 
   @override
   bool updateShouldNotify(MapMarkerData old) =>
-      markerOffsetOnImage != old.markerOffsetOnImage;
+      chosenMarkerOffset != old.chosenMarkerOffset ||
+      predictedMarkerOffset != old.predictedMarkerOffset;
 }

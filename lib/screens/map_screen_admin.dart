@@ -21,8 +21,12 @@ class _AdminMapScreenState extends BaseMapScreenState {
   final List<Map> _calibrationList = [];
 
   void _toggleErrorCalculation(BuildContext context) {
-    if (_calibrationEnabled) _toggleCalibration(context);
-    setState(() => _errorCalculationEnabled = !_errorCalculationEnabled);
+    setState(() {
+      if (_calibrationEnabled) _calibrationEnabled = false;
+      chosenMarkerOffset = null;
+      predictedMarkerOffset = null;
+      _errorCalculationEnabled = !_errorCalculationEnabled;
+    });
     showSnackBar(
       context,
       _errorCalculationEnabled
@@ -32,20 +36,22 @@ class _AdminMapScreenState extends BaseMapScreenState {
   }
 
   void _calculateError(BuildContext context) async {
-    final marker = markerOffsetOnImage;
+    final marker = chosenMarkerOffset;
     if (marker == null)
-      showSnackBar(context, 'Select Your Location');
+      showSnackBar(context, 'Select your location');
     else {
-      final markedLocation = await offsetOnImageToGeoOffset(marker);
-      final bestLocationMatch = await findUserGeolocation();
-      if (bestLocationMatch == null)
-        showSnackBar(context, 'Failed to get location. Try again later.');
+      final chosenLocation = await imageOffsetToGeoOffset(marker);
+      final predictedLocation = await findUserGeolocation();
+      if (predictedLocation == null)
+        showSnackBar(context, 'Failed to scan Wi-Fi. Try again later.');
       else {
+        final bestImageOffset = await geoOffsetToImageOffset(predictedLocation);
+        setState(() => predictedMarkerOffset = bestImageOffset);
         final errorDistance =
-            MathFunctions.haversineDistance(markedLocation, bestLocationMatch);
+            MathFunctions.haversineDistance(chosenLocation, predictedLocation);
         showSnackBar(
           context,
-          'The error is approximately ${errorDistance.toStringAsFixed(2)} metres.',
+          'The error is approximately ${errorDistance.toStringAsFixed(2)} m.',
         );
       }
     }
@@ -53,7 +59,12 @@ class _AdminMapScreenState extends BaseMapScreenState {
 
   void _toggleCalibration(BuildContext context, {bool isComplete = false}) {
     _calibrationList.clear();
-    setState(() => _calibrationEnabled = !_calibrationEnabled);
+    setState(() {
+      if (_errorCalculationEnabled) _errorCalculationEnabled = false;
+      chosenMarkerOffset = null;
+      predictedMarkerOffset = null;
+      _calibrationEnabled = !_calibrationEnabled;
+    });
     showSnackBar(
       context,
       isComplete
@@ -65,7 +76,7 @@ class _AdminMapScreenState extends BaseMapScreenState {
   }
 
   void _addCalibrationPoint(BuildContext context) async {
-    final marker = markerOffsetOnImage;
+    final marker = chosenMarkerOffset;
     if (marker == null)
       showSnackBar(context, 'Select Your Location');
     else {
@@ -88,13 +99,18 @@ class _AdminMapScreenState extends BaseMapScreenState {
     });
     final lineLongitude = MathFunctions.lineOfBestFit(longitudes);
     final lineLatitude = MathFunctions.lineOfBestFit(latitudes);
-    final line = {'latitude': lineLatitude, 'longitude': lineLongitude};
-    Database.setMapCalibration(
-      venueId: widget.venueId,
-      locationId: widget.locationId,
-      lineOfBestFit: line,
-    );
-    _toggleCalibration(context, isComplete: true);
+    if (lineLongitude['gradient'] == null || lineLatitude['gradient'] == null) {
+      _calibrationList.clear();
+      showSnackBar(context, 'Calibration failed. Try again later.');
+    } else {
+      final line = {'latitude': lineLatitude, 'longitude': lineLongitude};
+      Database.setMapCalibration(
+        venueId: widget.venueId,
+        locationId: widget.locationId,
+        lineOfBestFit: line,
+      );
+      _toggleCalibration(context, isComplete: true);
+    }
   }
 
   void _uploadMapImage() async {
@@ -114,11 +130,11 @@ class _AdminMapScreenState extends BaseMapScreenState {
   }
 
   void _addFingerprints(BuildContext context) async {
-    final marker = markerOffsetOnImage;
+    final marker = chosenMarkerOffset;
     if (marker == null)
       showSnackBar(context, 'Select your location.');
     else {
-      final geoOffset = await offsetOnImageToGeoOffset(marker);
+      final geoOffset = await imageOffsetToGeoOffset(marker);
       if (geoOffset == null)
         showSnackBar(context, 'Calibrate the geolocation.');
       else {
@@ -137,6 +153,13 @@ class _AdminMapScreenState extends BaseMapScreenState {
         }
       }
     }
+  }
+
+  @override
+  void setMarkerOffset(Offset newMarkerOffset) {
+    chosenMarkerOffset = newMarkerOffset;
+    predictedMarkerOffset = null;
+    setState(() {});
   }
 
   @override
@@ -218,8 +241,9 @@ class _AdminMapScreenState extends BaseMapScreenState {
               );
 
             return MapMarkerData(
-              markerOffsetOnImage: markerOffsetOnImage,
-              setMarkerOffsetOnImage: setMarkerOffsetOnImage,
+              chosenMarkerOffset: chosenMarkerOffset,
+              predictedMarkerOffset: predictedMarkerOffset,
+              setMarkerOffset: setMarkerOffset,
               child: MapView(image: NetworkImage(snapshot.data)),
             );
           },

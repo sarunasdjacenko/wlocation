@@ -33,10 +33,10 @@ class MathFunctions {
 
     final locOne = degreesToRadians(locationOne);
     final locTwo = degreesToRadians(locationTwo);
-    final delta = locOne - locTwo;
+    final delta = locTwo - locOne;
     // Haversine function.
     final a = pow(sin(delta.dy / 2), 2) +
-        cos(locOne.dx) * cos(locTwo.dx) * pow(sin(delta.dx / 2), 2);
+        cos(locOne.dy) * cos(locTwo.dy) * pow(sin(delta.dx / 2), 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return radiusOfEarth * c;
   }

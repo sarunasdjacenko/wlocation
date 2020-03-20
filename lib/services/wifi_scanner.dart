@@ -1,4 +1,3 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 
@@ -23,13 +22,13 @@ class WifiScanner {
     return GeoPoint(location.latitude, location.longitude);
   }
 
-  /// Invokes native method to scan for WiFi using, and returns the results.
+  /// Invokes native method to scan for Wi-Fi using, and returns the results.
   /// This is only implemented in Android (Kotlin) due to iOS limitations.
   static Future<Map> getWifiResults() async {
     await _enableLocation();
     final wifiResults = await _platform.invokeListMethod('getWifiResults');
     return Map.fromEntries(wifiResults
-        // .where((result) => result['ssid'] == 'eduroam')
+        .where((result) => result['ssid'] == 'eduroam')
         .map((result) => ScanData.fromMap(result)));
   }
 }

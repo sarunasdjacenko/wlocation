@@ -16,6 +16,19 @@ class UserMapScreen extends BaseMapScreen {
 class _UserMapScreenState extends BaseMapScreenState {
   RestartableTimer _scanTimer;
 
+  void _updateUserLocation() async {
+    _scanTimer.reset();
+    final bestLocationMatch = await findUserGeolocation();
+    if (bestLocationMatch != null) {
+      final imageOffset = await geoOffsetToImageOffset(bestLocationMatch);
+      if (_scanTimer.isActive) setMarkerOffset(imageOffset);
+    }
+  }
+
+  @override
+  void setMarkerOffset(Offset newMarkerOffset) =>
+      setState(() => predictedMarkerOffset = newMarkerOffset);
+
   @override
   void initState() {
     super.initState();
@@ -29,13 +42,6 @@ class _UserMapScreenState extends BaseMapScreenState {
   void dispose() {
     _scanTimer.cancel();
     super.dispose();
-  }
-
-  void _updateUserLocation() async {
-    _scanTimer.reset();
-    final bestLocationMatch = await findUserGeolocation();
-    final offsetOnImage = await geoOffsetToOffsetOnImage(bestLocationMatch);
-    if (_scanTimer.isActive) setMarkerOffsetOnImage(offsetOnImage);
   }
 
   @override
@@ -61,8 +67,8 @@ class _UserMapScreenState extends BaseMapScreenState {
               );
 
             return MapMarkerData(
-              markerOffsetOnImage: markerOffsetOnImage,
-              setMarkerOffsetOnImage: setMarkerOffsetOnImage,
+              predictedMarkerOffset: predictedMarkerOffset,
+              setMarkerOffset: setMarkerOffset,
               child: MapView(image: NetworkImage(snapshot.data)),
             );
           },
