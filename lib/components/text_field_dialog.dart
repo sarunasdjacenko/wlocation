@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 
 class TextFieldDialog extends StatelessWidget {
+  /// Input box for the dialog.
   final _inputController = TextEditingController();
 
+  /// The title of the dialog.
   final String titleText;
+  /// The label text to display when the input box is empty.
   final String labelText;
+  /// The function callback when the done button is tapped.
   final Function(String) onSubmit;
 
+  /// Constructor for the [TextFieldDialog] class
   TextFieldDialog({this.titleText, this.labelText, @required this.onSubmit});
 
   Widget build(BuildContext context) {
@@ -29,7 +34,7 @@ class TextFieldDialog extends StatelessWidget {
               border: const OutlineInputBorder(),
             ),
             cursorWidth: 1,
-            cursorColor: Theme.of(context).textTheme.bodyText2.color,
+            cursorColor: Theme.of(context).textTheme.body2.color,
             textInputAction: TextInputAction.done,
           ),
         ),

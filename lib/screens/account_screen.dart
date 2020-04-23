@@ -69,9 +69,11 @@ class _LoginPageState extends State<LoginPage> {
   String _password;
   bool _showLoading = false;
 
+  /// Shows a loading screen.
   void _showLoadingScreen(bool loading) =>
       setState(() => _showLoading = loading);
 
+  /// Returns true if the email and password are valid inputs.
   bool _validateEmailPassword(String email, String password) {
     if (email == null || password == null) {
       showSnackBar(context, 'Enter a valid email and password.');
@@ -80,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
     return true;
   }
 
-  // Attempt to sign up.
+  /// Attempt to sign up.
   void _signUp(String email, String password) {
     if (_validateEmailPassword(email, password)) {
       _showLoadingScreen(true);
@@ -94,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Attempt to sign in.
+  /// Attempt to sign in.
   void _signIn(String email, String password) {
     if (_validateEmailPassword(email, password)) {
       _showLoadingScreen(true);
@@ -127,7 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                     border: OutlineInputBorder(),
                   ),
                   cursorWidth: 1,
-                  cursorColor: Theme.of(context).textTheme.bodyText2.color,
+                  cursorColor: Theme.of(context).textTheme.body2.color,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   onChanged: (email) => _email = email,
@@ -144,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                     border: OutlineInputBorder(),
                   ),
                   cursorWidth: 1,
-                  cursorColor: Theme.of(context).textTheme.bodyText2.color,
+                  cursorColor: Theme.of(context).textTheme.body2.color,
                   keyboardType: TextInputType.visiblePassword,
                   textInputAction: TextInputAction.done,
                   onChanged: (password) => _password = password,

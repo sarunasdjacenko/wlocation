@@ -10,6 +10,7 @@ class LocationsScreen extends StatefulWidget {
   final String venueId;
   final String venueName;
 
+  /// Constructor for the [LocationsScreen] class.
   LocationsScreen({
     @required this.venueId,
     @required this.venueName,
@@ -96,6 +97,7 @@ class _LocationCard extends StatelessWidget {
   final String venueId;
   final String locationId;
 
+  /// Constructor for the [LocationCard] class.
   _LocationCard({
     @required this.locationName,
     this.venueId,

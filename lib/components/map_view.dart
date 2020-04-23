@@ -40,6 +40,7 @@ class _MapViewState extends State<MapView> {
     MapScreen.of(context).setMarkerOffset(imageOffset);
   }
 
+  /// Calculate the screen tap position from an offset on the image.
   Offset _imageOffsetToScreenPos(Offset imageOffset) {
     var screenPosition;
     if (imageOffset != null && _viewScale != null && _viewOffset != null) {
@@ -59,6 +60,7 @@ class _MapViewState extends State<MapView> {
     });
   }
 
+  /// Initialises the state, and subscribes to the [PhotoViewController] stream.
   @override
   void initState() {
     super.initState();
@@ -66,6 +68,7 @@ class _MapViewState extends State<MapView> {
       ..outputStateStream.listen(_viewControllerListener);
   }
 
+  /// Disposes the state when it is no longer needed.
   @override
   void dispose() {
     _viewController.dispose();
@@ -78,7 +81,6 @@ class _MapViewState extends State<MapView> {
         _imageOffsetToScreenPos(MapScreen.of(context).chosenMarkerOffset);
     final predictedMarkerPosition =
         _imageOffsetToScreenPos(MapScreen.of(context).predictedMarkerOffset);
-    print('TEST: $chosenMarkerPosition, $predictedMarkerPosition');
     final user = Provider.of<User>(context);
     return Stack(
       children: <Widget>[

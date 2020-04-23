@@ -14,48 +14,61 @@ class _FirebaseReferences {
   static final _firestore = Firestore.instance;
   static final _storage = FirebaseStorage.instance;
 
+  /// Reference to venues in [Firestore].
   static CollectionReference venues() => _firestore.collection('venues');
 
+  /// Reference to locations in [Firestore].
   static CollectionReference locations(String venueId) =>
       venues().document(venueId).collection('locations');
 
+  /// Reference to fingerprints in [Firestore].
   static CollectionReference fingerprints(String venueId, String locationId) =>
       locations(venueId).document(locationId).collection('fingerprints');
 
+  /// Reference to images in [FirebaseStorage].
   static StorageReference _images(String venueId, String locationId) =>
       _storage.ref().child('images/$venueId/$locationId/');
 
+  /// Reference to a full-sized map in [FirebaseStorage].
   static StorageReference mapFull(String venueId, String locationId) =>
       _images(venueId, locationId).child('map.jpg');
 
+  /// Reference to a thumbnail-sized map in [FirebaseStorage].
   static StorageReference mapThumbnail(String venueId, String locationId) =>
       _images(venueId, locationId).child('map_200x200.jpg');
 }
 
 /// Database implemented using Cloud Firestore, a NoSQL database
 class Database {
+  /// Returns a [Stream] of the venues [QuerySnapshot].
   static Stream<QuerySnapshot> venues() =>
       _FirebaseReferences.venues().orderBy('name').snapshots();
 
+  /// Adds a new venue.
   static void addVenue(String venueName) =>
       _FirebaseReferences.venues().add({'name': venueName});
 
+  /// Returns a [Stream] of the locations [QuerySnapshot].
   static Stream<QuerySnapshot> locations(String venueId) =>
       _FirebaseReferences.locations(venueId).orderBy('name').snapshots();
 
+  /// Adds a new location.
   static void addLocation(String venueId, String locationName) =>
       _FirebaseReferences.locations(venueId).add({'name': locationName});
 
+  /// Returns an authenticated URL of the full-sized map image.
   static Future<String> getMapUrl(String venueId, String locationId) =>
       _FirebaseReferences.mapFull(venueId, locationId)
           .getDownloadURL()
           .then((url) => url as String);
 
+  /// Returns an authenticated URL of the thumbnail-sized map image.
   static Future<String> getMapThumbnailUrl(String venueId, String locationId) =>
       _FirebaseReferences.mapThumbnail(venueId, locationId)
           .getDownloadURL()
           .then((url) => url as String);
 
+  /// Uploads an image to [FirebaseStorage].
   static Stream<StorageTaskEvent> addMapImage(
     String venueId,
     String locationId,
@@ -129,6 +142,7 @@ class Database {
     );
   }
 
+  /// Gets the calibration equation, used to convert pixels to geolocation.
   static Future<Map> getMapCalibration({
     String venueId,
     String locationId,
@@ -148,28 +162,4 @@ class Database {
         .document(locationId)
         .updateData({'calibration': lineOfBestFit});
   }
-
-  // static GeoPoint _calculateGeoPoint(Offset position, Map calibration) {
-  //   double calculatePoint(double coordinate, Map equation) {
-  //     final gradient = equation['gradient'];
-  //     final intercept = equation['intercept'];
-  //     return coordinate * gradient + intercept;
-  //   }
-
-  //   final longitude = calculatePoint(position.dx, calibration['longitude']);
-  //   final latitude = calculatePoint(position.dy, calibration['latitude']);
-  //   return GeoPoint(latitude, longitude);
-  // }
-
-  // static Offset _calculatePosition(GeoPoint geopoint, Map calibration) {
-  //   double calculatePoint(double coordinate, Map equation) {
-  //     final gradient = equation['gradient'];
-  //     final intercept = equation['intercept'];
-  //     return (coordinate - intercept) / gradient;
-  //   }
-
-  //   final x = calculatePoint(geopoint.longitude, calibration['longitude']);
-  //   final y = calculatePoint(geopoint.latitude, calibration['latitude']);
-  //   return Offset(x, y);
-  // }
 }

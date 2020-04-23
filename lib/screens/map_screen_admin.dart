@@ -7,6 +7,7 @@ import '../services/services.dart';
 import 'map_screen.dart';
 
 class AdminMapScreen extends BaseMapScreen {
+  /// Constructor for the [AdminMapScreen] class.
   AdminMapScreen(String venueId, String locationId, String locationName)
       : super(venueId, locationId, locationName);
 
@@ -15,11 +16,16 @@ class AdminMapScreen extends BaseMapScreen {
 }
 
 class _AdminMapScreenState extends BaseMapScreenState {
+  /// True if the error calculation mode is enabled.
   bool _errorCalculationEnabled = false;
 
+  /// True if the calibration mode is enabled.
   bool _calibrationEnabled = false;
+
+  /// List of points to use in calibration.
   final List<Map> _calibrationList = [];
 
+  /// Toggles the error calculation mode.
   void _toggleErrorCalculation(BuildContext context) {
     setState(() {
       if (_calibrationEnabled) _calibrationEnabled = false;
@@ -35,6 +41,7 @@ class _AdminMapScreenState extends BaseMapScreenState {
     );
   }
 
+  /// Calculates the error.
   void _calculateError(BuildContext context) async {
     final marker = chosenMarkerOffset;
     if (marker == null)
@@ -57,6 +64,7 @@ class _AdminMapScreenState extends BaseMapScreenState {
     }
   }
 
+  /// Toggles the calibration mode.
   void _toggleCalibration(BuildContext context, {bool isComplete = false}) {
     _calibrationList.clear();
     setState(() {
@@ -75,6 +83,7 @@ class _AdminMapScreenState extends BaseMapScreenState {
     );
   }
 
+  /// Adds a calibration point.
   void _addCalibrationPoint(BuildContext context) async {
     final marker = chosenMarkerOffset;
     if (marker == null)
@@ -91,6 +100,7 @@ class _AdminMapScreenState extends BaseMapScreenState {
     }
   }
 
+  /// Calibrates the map with GPS.
   void _calibrateGeolocation(BuildContext context) async {
     var longitudes = <Offset>[], latitudes = <Offset>[];
     _calibrationList.forEach((entry) {
@@ -113,6 +123,7 @@ class _AdminMapScreenState extends BaseMapScreenState {
     }
   }
 
+  /// Uploads a map image to [FirebaseStorage].
   void _uploadMapImage() async {
     final image = await ImagePicker.pickImage(source: ImageSource.gallery);
     Database.addMapImage(widget.venueId, widget.locationId, image).listen(
@@ -129,6 +140,7 @@ class _AdminMapScreenState extends BaseMapScreenState {
     );
   }
 
+  /// Adds fingerprints to the database.
   void _addFingerprints(BuildContext context) async {
     final marker = chosenMarkerOffset;
     if (marker == null)

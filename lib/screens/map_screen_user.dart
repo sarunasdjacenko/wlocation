@@ -6,6 +6,7 @@ import '../components/components.dart';
 import 'map_screen.dart';
 
 class UserMapScreen extends BaseMapScreen {
+  /// Constructor for the [UserMapScreen] class.
   UserMapScreen(String venueId, String locationId, String locationName)
       : super(venueId, locationId, locationName);
 
@@ -14,8 +15,10 @@ class UserMapScreen extends BaseMapScreen {
 }
 
 class _UserMapScreenState extends BaseMapScreenState {
+  /// Timer, used to scan every X duration.
   RestartableTimer _scanTimer;
 
+  /// Updates the user location on the map.
   void _updateUserLocation() async {
     _scanTimer.reset();
     final bestLocationMatch = await findUserGeolocation();
@@ -29,6 +32,7 @@ class _UserMapScreenState extends BaseMapScreenState {
   void setMarkerOffset(Offset newMarkerOffset) =>
       setState(() => predictedMarkerOffset = newMarkerOffset);
 
+  /// Initialises the state, and starts the scan timer.
   @override
   void initState() {
     super.initState();
@@ -38,6 +42,7 @@ class _UserMapScreenState extends BaseMapScreenState {
     _updateUserLocation();
   }
 
+  /// Disposes the state when it is no longer needed.
   @override
   void dispose() {
     _scanTimer.cancel();

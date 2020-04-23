@@ -11,12 +11,14 @@ class MapScreen extends StatelessWidget {
   final String locationId;
   final String locationName;
 
+  /// Constructor for the [MapScreen] class.
   MapScreen({
     @required this.venueId,
     @required this.locationId,
     @required this.locationName,
   });
 
+  /// Returns the [MapMarkerData] from the widget tree.
   static MapMarkerData of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<MapMarkerData>();
 
@@ -34,6 +36,7 @@ abstract class BaseMapScreen extends StatefulWidget {
   final String locationId;
   final String locationName;
 
+  /// Constructor for the [BaseMapScreen] class.
   BaseMapScreen(this.venueId, this.locationId, this.locationName);
 }
 
@@ -56,6 +59,8 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
   /// Abstract method used to set a marker offset. Activated on tap.
   void setMarkerOffset(Offset newMarkerOffset);
 
+  /// Scans Wi-Fi. Gets the fingerprints from the database,
+  /// which match the scanned access points.
   Future<Map> _getFingerprints() async {
     var fingerprints;
     final newWifiResults = await WifiScanner.getWifiResults();
@@ -70,6 +75,7 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
     return fingerprints;
   }
 
+  /// Finds the user's location using Weighted K-Nearest Neighbours.
   Future<Offset> findUserGeolocation() async {
     var bestLocationMatch;
     final fingerprints = await _getFingerprints();
@@ -84,6 +90,7 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
     return bestLocationMatch;
   }
 
+  /// Converts an image offset to a geo offset.
   Future<Offset> imageOffsetToGeoOffset(Offset offset) async {
     double calculate(double coordinate, Map equation) {
       final gradient = equation['gradient'];
@@ -104,6 +111,7 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
     return geoOffset;
   }
 
+  /// Converts a geo offset to an image offset.
   Future<Offset> geoOffsetToImageOffset(Offset geopoint) async {
     double calculate(double coordinate, Map equation) {
       final gradient = equation['gradient'];
@@ -124,6 +132,7 @@ abstract class BaseMapScreenState extends State<BaseMapScreen> {
     return imageOffset;
   }
 
+  /// Initialises the state, and retrieves the map image from [FirebaseStorage].
   @override
   void initState() {
     super.initState();
@@ -144,6 +153,7 @@ class MapMarkerData extends InheritedWidget {
   /// Callback used to set [chosenMarkerOffset] or [predictedMarkerOffset].
   final ValueChanged<Offset> setMarkerOffset;
 
+  /// Constructor for the [MapMarkerData] class.
   MapMarkerData({
     @required Widget child,
     @required this.predictedMarkerOffset,

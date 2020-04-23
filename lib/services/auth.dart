@@ -20,13 +20,14 @@ class Auth {
         return User(idToken?.claims);
       });
 
+  /// Attempts to sign up. Returns an error message if it fails.
   static Future<String> signUp(String email, String password) => _functions
       .getHttpsCallable(functionName: 'signUp')
       .call({'email': email, 'password': password})
       .then((result) => Future<String>.value(null))
       .catchError((error) => error.details['message']);
 
-  /// Returns true if the user signs in successfully.
+  /// Attempts to sign in. Returns an error message if it fails.
   static Future<String> signIn(String email, String password) => _auth
       .signInWithEmailAndPassword(email: email, password: password)
       .then((value) => Future<String>.value(null))
@@ -40,6 +41,7 @@ class User {
   final String email;
   final bool isAdmin;
 
+  /// Private constructor for the [User] class.
   User._(this.email, this.isAdmin);
 
   factory User(Map claims) {

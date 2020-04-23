@@ -77,6 +77,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
 class _VenueCard extends StatelessWidget {
   final String venueName;
 
+  /// Constructor for the [_VenueCard] class.
   _VenueCard({@required this.venueName});
 
   @override
